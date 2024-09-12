@@ -1,3 +1,4 @@
 # ignore ALL .log files
 *.csv
-fetched_gits/ 
+#ignore all sub folders
+*/ 
