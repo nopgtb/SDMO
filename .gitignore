@@ -1,4 +1,6 @@
-# ignore ALL .log files
+# ignore ALL .csv files
 *.csv
 #ignore all sub folders
 */ 
+#ignore zip files
+*.zip

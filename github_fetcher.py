@@ -45,11 +45,15 @@ def makedirs_helper(target):
         print("Failed to create folder: ", target, repr(e))
     return False
 
+#Does regex on the url to extract the repo name
+def get_repo_name(url):
+    return re.sub(r'https:\/\/github\.com\/[^\/]+\/|\.git', '', url)
+
 #Fetches the given git project and stores it into target/name folder
 #name is decoded from the source
 #returns the gits new local path
 def fetch_git(source, target):
-    name = re.sub(r'https:\/\/github\.com\/[^\/]+\/|\.git', '', source)
+    name = get_repo_name(source)
     try:
         repo_local_path = target + "\\" + name
         Repo.clone_from(source, repo_local_path)
@@ -58,7 +62,7 @@ def fetch_git(source, target):
         print("Failed to fetch: ", name, repr(e))
     return "FETCH_FAILED"
 
-#Writes index csv, assumes struct (name, license, folder)
+#Writes index csv, assumes struct
 def write_index(path, index, delimiter):
     try:
         with open(path, "w", newline="") as index_file:
