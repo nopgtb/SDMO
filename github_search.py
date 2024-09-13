@@ -1,23 +1,14 @@
 #If allowed this file will allow to query the github api for projects for option_a_bonus
 #It will place projects into source.csv
 #It requires a github api key, placed into variable api_token
-
-import csv
 import json
 import requests
-import time
-from pathlib import Path
+from common import relative_to_absolute, write_csv
 
 #Api token for authenticating wiht github api
 #https://github.com/settings/tokens - Generate new token => Generate new token (classic)
 #Scope doesnt matter, copy the "ghp_" string here
 api_token = ""
-
-#Make relative path to absolute path
-#returns absolute path of given relative path
-#example: github_search.py to C:\mycoolproject\github_search.py 
-def relative_to_absolute(path):
-    return str(Path(__file__).parent) + "\\" + path
 
 #Uses the api to get repos present in the search using the given query
 #https://docs.github.com/en/rest/search/search#search-repositories
@@ -41,18 +32,6 @@ def parse_source_info(json, query):
         )
     return sources
 
-#Writes source csv
-def write_source(path, sources, delimiter):
-    try:
-        with open(path, "a+", newline="", encoding="utf-8") as source_file:
-            csv_writer = csv.writer(source_file, delimiter=delimiter)
-            #write header row
-            csv_writer.writerow(["source_git"])
-            #write data
-            csv_writer.writerows([[i["source_git"]] for i in sources])
-    except Exception as e:
-        print("Failed to write source csv: ", path, repr(e))
-
 #Query the Github API
 query = "language:Java license:Unlicense"
 sources = []
@@ -61,6 +40,5 @@ for i in range(2):
     repo_json = get_repo_json(api_token, query, "stars", "desc", i+1, 62)
     sources.extend(parse_source_info(repo_json, query))
 
-
 #Write all the data to source.csv
-write_source(relative_to_absolute("source.csv"), sources, ",")
+write_csv(relative_to_absolute("source.csv"), sources, ",", {"source_git":0})
