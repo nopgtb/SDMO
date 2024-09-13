@@ -23,7 +23,6 @@ def fetch_git(source, target):
 #Source of data, modify to reflect the file you importing the gits from
 source_file = relative_to_absolute("source.csv")
 #Read sources
-#sources = read_sources(source_file, ",")
 sources = read_csv(source_file, ",", {"source_git":0})
 #create a folder to fetch to
 fetch_target = relative_to_absolute("fetched_git")

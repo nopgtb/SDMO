@@ -27,6 +27,8 @@ def start_refactoring_miner_proc(s):
         stdin = devnull, stdout = devnull, shell=True)
     return proc
 
+#Checks if old report file exits and deletes it
+#Creates a s new report file
 def create_report_file(path):
     report_path = path+"\\report.json"
     if os.path.exists(report_path):
@@ -45,7 +47,6 @@ def run_refactoring_miner_on_patch(patch, reports_path):
         #Is it valid local repo?
         if repo["local_path"] != "FETCH_FAILED":
             #create report.json file
-            #repo_report_path = reports_path + "\\" + get_repo_name(repo["source_git"]) +"\\report.json"
             repo_report_path = create_report_file(reports_path + "\\" + get_repo_name(repo["source_git"]))
             procs.append(start_refactoring_miner_proc({
                 "git_path": repo["local_path"],
@@ -58,7 +59,6 @@ def run_refactoring_miner_on_patch(patch, reports_path):
     return patch
 
 #Read fetch index
-#local_ref_mining_targets = read_sources(relative_to_absolute("fetch_index.csv"), ",")
 local_ref_mining_targets = read_csv(relative_to_absolute("fetch_index.csv"), ",", {"source_git":0, "local_path":1})
 
 #Split data into patches for processing
@@ -76,7 +76,6 @@ for i, patch in enumerate(local_ref_mining_targets):
     mining_index.append(run_refactoring_miner_on_patch(patch, reports_path))
 
 #Write mining index for further processing
-#write_index(relative_to_absolute("mining_index.csv"), [r for p in mining_index for r in p], ",")
 write_csv(relative_to_absolute("mining_index.csv"), [r for p in mining_index for r in p], ",", {"source_git":0, "local_path":1, "mining_report":2})
 #Clean up
 devnull.close()

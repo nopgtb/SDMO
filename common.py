@@ -1,6 +1,7 @@
 import re
 import os
 import csv
+import json
 from pathlib import Path
 
 #Get repo name from github .git link
@@ -12,7 +13,6 @@ def get_repo_name(url):
 #example: github_search.py to C:\mycoolproject\github_search.py 
 def relative_to_absolute(path):
     return str(Path(__file__).parent) + "\\" + path
-
 
 #Read csv with given structure
 def read_csv(path, delimiter, struct):
@@ -36,7 +36,6 @@ def write_csv(path, sources, delimiter, struct):
             csv_writer.writerow([key for key in struct.keys()])
             #write data
             csv_writer.writerows([[i[key] for key in struct.keys()] for i in sources])
-            #csv_writer.writerows([[i["source_git"]] for i in sources])
     except Exception as e:
         print("Failed to write source csv: ", path, repr(e))
 
@@ -49,3 +48,10 @@ def makedirs_helper(target):
     except Exception as e:
         print("Failed to create folder: ", target, repr(e))
     return False
+
+#read a json file
+def read_json(path):
+    data = {}
+    with open(path, "r") as file:
+        data = json.load(file)
+    return data
