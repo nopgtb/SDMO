@@ -55,3 +55,8 @@ def read_json(path):
     with open(path, "r") as file:
         data = json.load(file)
     return data
+
+#Writes json to file
+def write_json(path, data):
+    with open(path, "a+") as file:
+        json.dump(data, file)

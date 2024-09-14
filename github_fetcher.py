@@ -3,6 +3,10 @@
 #option a csv file can be retrieved by copying the html table from the website into this tool https://www.convertcsv.com/html-table-to-csv.htm
 #option b csv file can be retrieved using script "option_b_decode_git_urls.py"
 #remove unwanted projects from the csv file before feeding it to this script
+
+#Depending on project size, fetching local version migth take very long
+#It gave me checkout errors this helped if you get them too: git config --system core.longpaths true
+
 import time
 from git import Repo  # pip install gitpython
 from common import relative_to_absolute, read_csv, write_csv, makedirs_helper, get_repo_name
@@ -31,7 +35,7 @@ makedirs_helper(fetch_target)
 #Start fetching gits
 index = []
 for i,source in enumerate(sources):
-    print("Fetching source: " + str(i))
+    print("Fetching source: " + source["source_git"])
     repo_local_path = fetch_git(source["source_git"], fetch_target)
     index.append({"source_git": source["source_git"], "local_path": repo_local_path})
     #sleep 30 seconds and dont spam

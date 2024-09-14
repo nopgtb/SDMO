@@ -3,12 +3,15 @@
 #cd into the extracted RefactoringMiner root 
 #run gradlew distZip or ./gradlew distZip to build distro
 #Assumed that build version of RefactorMiner is added to the system path (*/bin)
+#You could also modify start_refactoring_miner_proc to point to your version
+
+#You might want to drop the patch_size variable down to 1 if your cpu cant keep up
 
 import os
 import subprocess
 from common import relative_to_absolute, read_csv, write_csv, makedirs_helper, get_repo_name
 
-#suppress output
+#try suppress output
 devnull = open(os.devnull, "w")
 
 #Splits data into patches
