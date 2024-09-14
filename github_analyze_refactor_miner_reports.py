@@ -23,7 +23,6 @@ def get_refactored_commits(mined_repo):
             if len(commit["refactorings"]) > 0:
                 #Take hash, we only need that
                 rf_commits.append(commit["sha1"])
-    print(len(rf_commits))
     return rf_commits
 
 def mine_details_from_repo(mr, mined_commits):
@@ -44,7 +43,6 @@ def mine_details_from_repo(mr, mined_commits):
                     "diff":[{"file": mf.filename, "diff_parsed": mf.diff_parsed} for mf in commit.modified_files]
                 })
                 need_previous_commit = True
-    print(len(detailed_commit_info))
     return detailed_commit_info
 
 
