@@ -4,3 +4,5 @@
 */ 
 #ignore zip files
 *.zip
+#ignore json files
+*.json
