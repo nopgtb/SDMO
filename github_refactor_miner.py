@@ -35,7 +35,7 @@ def start_refactoring_miner_proc(s):
     refactoring_miner_path = "RefactoringMiner"
     proc = subprocess.Popen(
         refactoring_miner_path + " -a " +  s["git_path"] + " -json " + s["report_path"], 
-        stdin = devnull, stdout = subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+        stdin = devnull, stdout = devnull, stderr=devnull, shell=True)
     return proc
 
 #If there is a report.json assume this repo is mined
@@ -43,8 +43,7 @@ def is_mined(path):
     return file_exists(path)
 
 #Checks stderr for possible error message
-def solve_subprocess_error_message(p):
-    stdout,stderr = p.communicate()
+def solve_subprocess_error_message(stderr):
     err_msg = ""
     #try to solve error message
     if isinstance(stderr, str):
@@ -75,13 +74,14 @@ def run_refactoring_miner_on_patch(patch, reports_path):
                     "repo": repo["local_path"]
                 })
             repo["mining_report"] = report_file
+
     #Wait for mining to finish
     for p in procs:
+        #stdout,stderr = p["p_object"].communicate()
         p["p_object"].wait()
-    #check return codes
-    for p in procs:
         if p["p_object"].returncode != 0:
-            err_msg = solve_subprocess_error_message(p["p_object"])
+            #err_msg = solve_subprocess_error_message(stderr)
+            err_msg = "propably just ran out of memory"
             #mining might have crashed, make a note of it
             write_json(relative_to_absolute("mining_error.json"), {"offening_repo": p["repo"], "err": err_msg})
     return patch
