@@ -2,6 +2,7 @@ import re
 import os
 import csv
 import json
+import datetime
 from pathlib import Path
 
 #Get repo name from github .git link
@@ -64,3 +65,7 @@ def read_json(path):
 def write_json(path, data):
     with open(path, "a+") as file:
         json.dump(data, file)
+
+#Gets a formated timestamp
+def get_timestamp():
+    return datetime.datetime.now().strftime('%H:%M:%S')
