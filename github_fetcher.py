@@ -9,7 +9,7 @@
 
 import time
 from git import Repo  # pip install gitpython
-from common import relative_to_absolute, read_csv, write_csv, makedirs_helper, get_repo_name
+from common import relative_to_absolute, read_csv, write_csv, makedirs_helper, get_repo_name, file_exists
 
 #Fetches the given git project and stores it into target/name folder
 #name is decoded from the source
@@ -18,7 +18,10 @@ def fetch_git(source, target):
     name = get_repo_name(source)
     try:
         repo_local_path = target + "\\" + name
-        Repo.clone_from(source, repo_local_path)
+        #If it exists assume we fetched earlier
+        #Just return the path
+        if not file_exists(repo_local_path):
+            Repo.clone_from(source, repo_local_path)
         return repo_local_path
     except Exception as e:
         print("Failed to fetch: ", name, repr(e))

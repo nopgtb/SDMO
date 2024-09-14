@@ -39,6 +39,10 @@ def write_csv(path, sources, delimiter, struct):
     except Exception as e:
         print("Failed to write source csv: ", path, repr(e))
 
+#Does the file exist
+def file_exists(path):
+    return os.path.exists(path)
+
 #Checks if folder exits and makes if it doesnt recursivly
 def makedirs_helper(target):
     try:
