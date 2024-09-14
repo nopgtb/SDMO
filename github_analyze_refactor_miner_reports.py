@@ -69,10 +69,9 @@ for mr in mined_repos:
     #Copy rminer output
     shutil.copyfile(mr["mining_report"], repo_submission_folder + "/rminer-output.json")
     #write refactor commit message file
-    write_csv(
-        repo_submission_folder + "/rcommit-messages.csv", 
-        [{"commit_hash" : commit["hash"], "commit_message": commit["msg"]} for commit in mined_commits],
-        ",", {"commit_hash": 0, "commit_message":1}
+    write_json(
+        repo_submission_folder + "/rcommit-messages.json", 
+        [{"commit_hash" : commit["hash"], "commit_message": commit["msg"]} for commit in mined_commits]
     )
     #write diff json
     write_json(
