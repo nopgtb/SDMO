@@ -25,24 +25,27 @@ def get_refactored_commits(mined_repo):
                 rf_commits.append(commit["sha1"])
     return rf_commits
 
+#Gets the previous commmit
+def get_previous_commit(commit):
+    #https://pydriller.readthedocs.io/en/latest/commit.html
+    #According to this previous commits are in a parents str_list
+    #For now just naively get the first one?
+    #I guess if it becomes a issue, you can do branch analysis here
+    return commit.parents[0]
+
 def mine_details_from_repo(mr, mined_commits):
     detailed_commit_info = []
     if len(mined_commits) > 0:
         #https://pydriller.readthedocs.io/en/latest/commit.html for commit struct info
-        #set flag for getting previous commit hash, I dont seem to find any direct way to get this
-        need_previous_commit = False
         for commit in Repository(mr["local_path"]).traverse_commits():
-            if need_previous_commit:
-                need_previous_commit = False
-                detailed_commit_info[-1]["previous_hash"] = commit.hash
             #is refactoring commit?
             if(commit.hash in mined_commits):
                 detailed_commit_info.append({
                     "hash":commit.hash,
                     "msg": commit.msg ,
-                    "diff":[{"file": mf.filename, "diff_parsed": mf.diff_parsed} for mf in commit.modified_files]
+                    "diff":[{"file": mf.filename, "diff_parsed": mf.diff_parsed} for mf in commit.modified_files],
+                    "previous_hash": get_previous_commit(commit)
                 })
-                need_previous_commit = True
     return detailed_commit_info
 
 
