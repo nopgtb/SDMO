@@ -8,7 +8,6 @@
 #this might help https://stackoverflow.com/questions/72978485/git-submodule-update-failed-with-fatal-detected-dubious-ownership-in-reposit#answer-73100228
 
 import shutil
-from git import Repo  # pip install gitpython
 from pydriller import Repository #pip install pydriller
 from common import relative_to_absolute, read_csv, write_csv, read_json, makedirs_helper, get_repo_name, write_json, file_exists
 
@@ -37,6 +36,8 @@ def mine_details_from_repo(mr, mined_commits):
     detailed_commit_info = []
     if len(mined_commits) > 0:
         #https://pydriller.readthedocs.io/en/latest/commit.html for commit struct info
+        #https://pydriller.readthedocs.io/en/latest/repository.html vs https://pydriller.readthedocs.io/en/latest/git.html
+        #With repo we can analyze all commits, with git we have to start configuring the repo
         for commit in Repository(mr["local_path"]).traverse_commits():
             #is refactoring commit?
             if(commit.hash in mined_commits):
@@ -47,7 +48,6 @@ def mine_details_from_repo(mr, mined_commits):
                     "previous_hash": get_previous_commit(commit)
                 })
     return detailed_commit_info
-
 
 #make submission folder
 submission_folder = relative_to_absolute("part_1_submission")
