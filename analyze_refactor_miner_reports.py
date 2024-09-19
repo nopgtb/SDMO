@@ -36,8 +36,6 @@ def mine_details_from_repo(mr, mined_commits):
     detailed_commit_info = []
     if len(mined_commits) > 0:
         #https://pydriller.readthedocs.io/en/latest/commit.html for commit struct info
-        #https://pydriller.readthedocs.io/en/latest/repository.html vs https://pydriller.readthedocs.io/en/latest/git.html
-        #With repo we can analyze all commits, with git we have to start configuring the repo
         for commit in Repository(mr["local_path"]).traverse_commits():
             #is refactoring commit?
             if(commit.hash in mined_commits):
@@ -86,7 +84,7 @@ for mr in mined_repos:
         )
 
     #Create index for easy access in part 2
-    mr["commit_messages"] = repo_submission_folder + "/rcommit-messages.csv"
+    mr["commit_messages"] = repo_submission_folder + "/rcommit-messages.json"
     mr["commit_diffs"] = repo_submission_folder + "/rcommit-diffs.json"
 
 write_csv(relative_to_absolute("part_1_submission_index.csv"), mined_repos, ",", {"source_git":0, "local_path":1, "mining_report":2, "commit_messages":3, "commit_diffs":4})
