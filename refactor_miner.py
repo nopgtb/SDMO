@@ -14,7 +14,7 @@
 
 import os
 import subprocess
-from common import relative_to_absolute, read_csv, write_csv, makedirs_helper, get_repo_name, file_exists, write_json, get_timestamp
+from common import relative_to_absolute, read_csv, write_csv, makedirs_helper, get_repo_name, file_exists, write_json, get_timestamp, get_main_branch
 
 #try suppress output
 devnull = open(os.devnull, "w")
@@ -34,7 +34,7 @@ def start_refactoring_miner_proc(s):
     #refactoring_miner_path = relative_to_absolute("RefactoringMiner-3.0.7\\bin\\RefactoringMiner")
     refactoring_miner_path = "RefactoringMiner"
     proc = subprocess.Popen(
-        refactoring_miner_path + " -a " +  s["git_path"] + " -json " + s["report_path"], 
+        refactoring_miner_path + " -a " +  s["git_path"] + " " + get_main_branch(s["git_path"]) + " -json " + s["report_path"], 
         stdin = devnull, stdout = devnull, stderr=devnull, shell=True)
     return proc
 

@@ -4,6 +4,8 @@ import csv
 import json
 import datetime
 from pathlib import Path
+from git import Repo  # pip install gitpython
+from pydriller import Repository #pip install pydriller
 
 #Get repo name from github .git link
 def get_repo_name(url):
@@ -69,3 +71,17 @@ def write_json(path, data):
 #Gets a formated timestamp
 def get_timestamp():
     return datetime.datetime.now().strftime('%H:%M:%S')
+
+#Returns single commit object based on given sha
+#from the given repo
+def get_commit_by_hash(repo, sha):
+    return next(Repository(repo, single=sha).traverse_commits())
+
+#based on https://stackoverflow.com/questions/69651536/how-to-get-master-main-branch-from-gitpython#answer-77281772
+#returns default branch name
+def get_main_branch(path):
+    show_result = Repo.init(path).git.remote("show", "origin")  
+    matches = re.search(r"\s*HEAD branch:\s*(.*)", show_result)
+    if matches:
+        return matches.group(1)
+    return ""
