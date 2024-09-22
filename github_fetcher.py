@@ -33,16 +33,17 @@ source_file = relative_to_absolute("source.csv")
 sources = read_csv(source_file, ",", {"source_git":0})
 #create a folder to fetch to
 fetch_target = relative_to_absolute("fetched_git")
-makedirs_helper(fetch_target)
+if(makedirs_helper(fetch_target)):
+    #Start fetching gits
+    result_index = []
+    for i,source in enumerate(sources):
+        print("Fetching source: " + source["source_git"])
+        repo_local_path = fetch_git(source["source_git"], fetch_target)
+        result_index.append({"source_git": source["source_git"], "local_path": repo_local_path})
+        #sleep 30 seconds and dont spam
+        time.sleep(30)
+    #Write index for further processing
+    write_csv(relative_to_absolute("fetch_index.csv"), result_index, ",", {"source_git":0, "local_path":1})
+else:
+    print("Failed to create folder. Cant proceed")
 
-#Start fetching gits
-index = []
-for i,source in enumerate(sources):
-    print("Fetching source: " + source["source_git"])
-    repo_local_path = fetch_git(source["source_git"], fetch_target)
-    index.append({"source_git": source["source_git"], "local_path": repo_local_path})
-    #sleep 30 seconds and dont spam
-    time.sleep(30)
-
-#Write index for further processing
-write_csv(relative_to_absolute("fetch_index.csv"), index, ",", {"source_git":0, "local_path":1})

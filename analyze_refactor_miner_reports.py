@@ -1,11 +1,6 @@
-#Reports are in a json format. commits of the branch are listed  commit by commit (["commits"] => array of commits)
-#Each commit lists it sha1 signiture (["commits"]["sha1"]) and refactorings that were found in it  (["commits"]["refactorings"])
-#Each refactoring has a refactoring type (["commits"]["refactorings"][0]["type"])
-#Each refactoring lists the pre change info of the change (["commits"]["refactorings"][0]["leftSideLocations"]) 
-#And post change info (["commits"]["refactorings"][0]["rightSideLocations"])
-
 #If you run into git error: detected dubious ownership ownership of repo
 #this might help https://stackoverflow.com/questions/72978485/git-submodule-update-failed-with-fatal-detected-dubious-ownership-in-reposit#answer-73100228
+#or just run the succested command for each folder
 
 import shutil
 from pydriller import Repository #pip install pydriller
@@ -49,42 +44,43 @@ def mine_details_from_repo(mr, mined_commits):
 
 #make submission folder
 submission_folder = relative_to_absolute("part_1_submission")
-makedirs_helper(submission_folder)
+if(makedirs_helper(submission_folder)):
+    #Read the mined repos for processing
+    mined_repos = read_csv(relative_to_absolute("mining_index.csv"), ",", {"source_git":0,"local_path":1,"mining_report":2})
+    
+    #process repos
+    for mr in mined_repos:
+        print("Mining details from: " + mr["source_git"])
+        #check if we want to skip this
+        repo_submission_folder = submission_folder + "/" + get_repo_name(mr["source_git"])
+        if not file_exists(repo_submission_folder):
+            #Get all refactored commits
+            refactored_commits = get_refactored_commits(mr)
+            #Mine wanted data from the repo
+            mined_commits = mine_details_from_repo(mr, refactored_commits)
+            print("Outputting submission for: " + mr["source_git"])
 
-#Read the mined repos for processing
-mined_repos = read_csv(relative_to_absolute("mining_index.csv"), ",", {"source_git":0,"local_path":1,"mining_report":2})
+            #output to submission folder
+            #Create folder for repo
 
-#process repos
-for mr in mined_repos:
-    print("Mining details from: " + mr["source_git"])
-    #check if we want to skip this
-    repo_submission_folder = submission_folder + "/" + get_repo_name(mr["source_git"])
-    if not file_exists(repo_submission_folder):
-        #Get all refactored commits
-        refactored_commits = get_refactored_commits(mr)
-        #Mine wanted data from the repo
-        mined_commits = mine_details_from_repo(mr, refactored_commits)
-        print("Outputting submission for: " + mr["source_git"])
+            makedirs_helper(repo_submission_folder)
+            #Copy rminer output
+            shutil.copyfile(mr["mining_report"], repo_submission_folder + "/rminer-output.json")
+            #write refactor commit message file
+            write_json(
+                repo_submission_folder + "/rcommit-messages.json", 
+                [{"commit_hash" : commit["hash"], "commit_message": commit["msg"]} for commit in mined_commits]
+            )
+            #write diff json
+            write_json(
+                repo_submission_folder + "/rcommit-diffs.json",
+                [{"commit_hash": commit["hash"], "previous_commit_hash": commit["previous_hash"], "diff": commit["diff"]} for commit in mined_commits]
+            )
 
-        #output to submission folder
-        #Create folder for repo
+        #Create index for easy access in part 2
+        mr["commit_messages"] = repo_submission_folder + "/rcommit-messages.json"
+        mr["commit_diffs"] = repo_submission_folder + "/rcommit-diffs.json"
 
-        makedirs_helper(repo_submission_folder)
-        #Copy rminer output
-        shutil.copyfile(mr["mining_report"], repo_submission_folder + "/rminer-output.json")
-        #write refactor commit message file
-        write_json(
-            repo_submission_folder + "/rcommit-messages.json", 
-            [{"commit_hash" : commit["hash"], "commit_message": commit["msg"]} for commit in mined_commits]
-        )
-        #write diff json
-        write_json(
-            repo_submission_folder + "/rcommit-diffs.json",
-            [{"commit_hash": commit["hash"], "previous_commit_hash": commit["previous_hash"], "diff": commit["diff"]} for commit in mined_commits]
-        )
-
-    #Create index for easy access in part 2
-    mr["commit_messages"] = repo_submission_folder + "/rcommit-messages.json"
-    mr["commit_diffs"] = repo_submission_folder + "/rcommit-diffs.json"
-
-write_csv(relative_to_absolute("part_1_submission_index.csv"), mined_repos, ",", {"source_git":0, "local_path":1, "mining_report":2, "commit_messages":3, "commit_diffs":4})
+    write_csv(relative_to_absolute("part_1_submission_index.csv"), mined_repos, ",", {"source_git":0, "local_path":1, "mining_report":2, "commit_messages":3, "commit_diffs":4})
+else:
+    print("Failed to create folder. Could not proceed")

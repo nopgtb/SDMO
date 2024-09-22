@@ -5,7 +5,9 @@ from metric_funtions import *
 #list can be found on the last page of the assignment
 #if some are missing go ahead and implement them in metric_functions.py and add it here
 metric_table = {
-    "COMM": lambda mr, previous_commit, current_commit:  calculate_metric_comm(mr, previous_commit, current_commit)
+    "COMM": lambda mr, previous_commit, current_commit:  calculate_metric_comm(mr, previous_commit, current_commit),
+    "ADEV": lambda mr, previous_commit, current_commit:  calculate_metric_adev(mr, previous_commit, current_commit),
+    "DDEV": lambda mr, previous_commit, current_commit:  calculate_metric_ddev(mr, previous_commit, current_commit),
 }
 
 #run metric mining
