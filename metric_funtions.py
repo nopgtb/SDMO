@@ -119,7 +119,7 @@ def calculate_metric_del(mr, previous_commit, current_commit):
     except:
         rff_data = []
     #file, lines removed
-    diff_data = [{"file":f["file"], "removed":len(f["diff_parsed"]["removed"])} for f in current_commit["diff"]]
+    diff_data = [{"file":f["file"], "removed":len(f["diff_parsed"]["deleted"])} for f in current_commit["diff"]]
     #Loop and calculate normals per file
     normal_rem = []
     for dfd in diff_data:
