@@ -8,6 +8,8 @@ metric_table = {
     "COMM": lambda mr, previous_commit, current_commit:  calculate_metric_comm(mr, previous_commit, current_commit),
     "ADEV": lambda mr, previous_commit, current_commit:  calculate_metric_adev(mr, previous_commit, current_commit),
     "DDEV": lambda mr, previous_commit, current_commit:  calculate_metric_ddev(mr, previous_commit, current_commit),
+    "ADD":  lambda mr, previous_commit, current_commit:  calculate_metric_add(mr, previous_commit, current_commit),
+    "DEL":  lambda mr, previous_commit, current_commit:  calculate_metric_del(mr, previous_commit, current_commit),
 }
 
 #run metric mining
