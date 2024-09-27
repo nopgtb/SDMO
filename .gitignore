@@ -6,3 +6,5 @@
 *.zip
 #ignore json files
 *.json
+#Compiled py files
+*.pyc

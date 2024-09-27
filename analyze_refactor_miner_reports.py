@@ -37,7 +37,7 @@ def mine_details_from_repo(mr, mined_commits):
                 detailed_commit_info.append({
                     "hash":commit.hash,
                     "msg": commit.msg ,
-                    "diff":[{"file": mf.filename, "diff_parsed": mf.diff_parsed} for mf in commit.modified_files],
+                    "diff":[{"file": mf.filename, "new_path": mf.new_path, "old_path": mf.old_path, "diff_parsed": mf.diff_parsed} for mf in commit.modified_files],
                     "previous_hash": get_previous_commit(commit)
                 })
     return detailed_commit_info

@@ -1,81 +1,100 @@
-from common import relative_to_absolute, read_csv, read_json, makedirs_helper, get_repo_name, write_json
-from metric_funtions import *
+import metrics
+from os import path
+from common import *
+from datetime import datetime
+from pydriller import Repository
+import metrics.metric_del #pip install pydriller
 
 #list for metric calculating functions
 #list can be found on the last page of the assignment
 #if some are missing go ahead and implement them in metric_functions.py and add it here
-metric_table = {
-    "COMM": lambda mr, previous_commit, current_commit:  calculate_metric_comm(mr, previous_commit, current_commit),
-    "ADEV": lambda mr, previous_commit, current_commit:  calculate_metric_adev(mr, previous_commit, current_commit),
-    "DDEV": lambda mr, previous_commit, current_commit:  calculate_metric_ddev(mr, previous_commit, current_commit),
-    "ADD":  lambda mr, previous_commit, current_commit:  calculate_metric_add(mr, previous_commit, current_commit),
-    "DEL":  lambda mr, previous_commit, current_commit:  calculate_metric_del(mr, previous_commit, current_commit),
+metrics_table = {
+    "COMM": metrics.Metric_COMM,
+    "ADEV": metrics.Metric_ADEV,
+    "DDEV": metrics.Metric_DDEV,
+    "ADD":  metrics.Metric_Add,
+    "DEL":  metrics.Metric_Del,
 }
 
-#run metric mining
-def get_metrics(metrics, mr, previous_commit, current_commit):
-    #we want format commit_hash, metric_1, metric_2...
-    #as foretold by the assignment
-    metric_values = {"commit_hash":current_commit["commit_hash"] }
-    #if no specific set of metrics given run all
-    if not metrics:
-        metrics = metric_table.keys()
-    for k in metrics:
-        if k in metric_table.keys():
-            mval = metric_table[k](mr, previous_commit, current_commit)
-            #for scenario where we dont want to add anything for the metric
-            if mval:
-                mk = "metric_" + str(len(metric_values.keys()))
-                metric_values[mk] = mval
-    return metric_values
-
-#Returns needed data from the rfm data
-def parse_rfm_data(data):
-    rfm_data = {}
-    #list of filepaths refactored in this commit
-    rfm_data["refactored_files"] = list(set([file["filePath"] for rf in data["refactorings"] for file in rf["leftSideLocations"]]))
-    return rfm_data
-
+#Runs precalculations on the given metric calculators
+def run_metric_precalculations(repository, rf_commit_data, metrics_calculators):
+    #Per repository per_calc
+    for metric_calc in metrics_calculators:
+        metrics_calculators[metric_calc].pre_calc_per_repository()
+    hashes = []
+    #run precalculations on the repo. Call pre_cal for each commit
+    for commit in Repository(repository["local_path"]).traverse_commits():
+        hashes.append(commit.hash)
+        #If we are a commit with mined refactoring data get it
+        is_rfm_commit = (commit.hash in rf_commit_data)
+        rfm_commit = rf_commit_data.get(commit.hash, None)
+        #Per file pre_calc
+        for modified_file in commit.modified_files:
+            for metric_calc in metrics_calculators:
+                metrics_calculators[metric_calc].pre_calc_per_file(modified_file, commit, is_rfm_commit, rfm_commit)
+        #Per commit pre_calc
+        for metric_calc in metrics_calculators:
+            metrics_calculators[metric_calc].pre_calc_per_commit(commit, is_rfm_commit, rfm_commit)
 
 #Load up the available data from the part 1 files
-def load_commit_data(mr):
+def load_commit_data(repository):
     #commit_hash, commit_message
-    commits = read_json(mr["commit_messages"])
+    commits = read_json(repository["commit_messages"])
     #lookup table for easy addition
     commits = {commit["commit_hash"]:commit for commit in commits}
     hashes = commits.keys()
     #read rf miner report. We need to get the files that had refactoring done on
-    rfm_data = read_json(mr["mining_report"])
+    rfm_data = read_json(repository["mining_report"])
     #add rfm data
     for rf_commit in rfm_data["commits"]:
         if rf_commit["sha1"] in hashes:
-            commits[rf_commit["sha1"]]["rfm_data"] = parse_rfm_data(rf_commit)
+            commits[rf_commit["sha1"]]["rfm_data"] = {"refactored_files":list(set([path.normpath(file["filePath"]) for rf in rf_commit["refactorings"] for file in rf["rightSideLocations"]]))}
     #add diff data
     #commit_hash, previous_commit_hash, diff:[...]
-    diffs = read_json(mr["commit_diffs"])
+    diffs = read_json(repository["commit_diffs"])
     for diff in diffs:
         commits[diff["commit_hash"]]["previous_commit_hash"] = diff["previous_commit_hash"]
         commits[diff["commit_hash"]]["diff"] = diff["diff"]
-    #turns us back into a nice array
-    return [commits[key] for key in commits.keys()]
+    return commits
+
+#Takes repository and returns metric data for its rfm commits
+def get_metric_data(metrics_to_run, repository):
+    #Load mining data and other commit data available
+    rfm_commit_data = load_commit_data(repository)
+    #If not specified run all metrics
+    if not metrics_to_run:
+        metrics_to_run = metrics_table.keys()
+    #Build metric calculators
+    metric_calculators = {}
+    #Get the metric calculator object and give it repo data
+    for metric_to_run in metrics_to_run:
+        metric_calculators[metric_to_run] = metrics_table[metric_to_run](repository)
+    #Run precalculations on the metric calculators
+    run_metric_precalculations(repository, rfm_commit_data, metric_calculators)
+    #Get metric data for the rfm commits
+    metrics_data = []
+    previous_rfm_commit = None
+    for commit_hash, rfm_commit in list(rfm_commit_data.items()):
+        print(get_timestamp(), ": ", commit_hash)
+        rfm_commit_metrics = {"commit_hash": commit_hash}
+        #Run it trought the metric calculators
+        for metric_calc in metric_calculators:
+            rfm_commit_metrics["metric_" + str(len(rfm_commit_metrics.keys()))] = metric_calculators[metric_calc].get_metric(previous_rfm_commit, rfm_commit)
+        metrics_data.append(rfm_commit_metrics)
+        previous_rfm_commit = rfm_commit
+    return metrics_data
 
 #Get mined commits
-mining_data = read_csv(relative_to_absolute("part_1_submission_index.csv"), ",", {"source_git":0, "local_path":1, "mining_report":2, "commit_messages":3, "commit_diffs":4})
+mined_repositories = read_csv(relative_to_absolute("part_1_submission_index.csv"), ",", {"source_git":0, "local_path":1, "mining_report":2, "commit_messages":3, "commit_diffs":4})
 #Create part 2 submission folder
 part_2_submission_folder = relative_to_absolute("part_2_submission")
-makedirs_helper(part_2_submission_folder)
-
-for mr in mining_data:
-    print("processing: ", mr["source_git"])
-    #load commit data and run them trough the metric functions
-    commits = load_commit_data(mr)
-    metrics = []
-    previous_commit = None
-    for commit in commits:
-        metrics.append(get_metrics(None, mr, previous_commit, commit))
-        previous_commit = commit
-    #create repo submission folder and write metrics
-    part_2_repo_folder = part_2_submission_folder + "/" + get_repo_name(mr["source_git"])
-    makedirs_helper(part_2_repo_folder)
-    write_json(part_2_repo_folder + "/rmetrics.json", metrics)
-
+if makedirs_helper(part_2_submission_folder):
+    #if empty all metrics are calculated
+    metrics_to_calculate = []
+    for respository in mined_repositories:
+        print("processing: ", respository["source_git"])
+        repository_rfm_metrics = get_metric_data(metrics_to_calculate, respository)
+        #create repo submission folder and write metrics
+        part_2_repo_folder = part_2_submission_folder + "/" + get_repo_name(respository["source_git"])
+        makedirs_helper(part_2_repo_folder)
+        write_json(part_2_repo_folder + "/rmetrics.json", repository_rfm_metrics)
