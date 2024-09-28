@@ -1,6 +1,5 @@
-from os import path
 from metrics.metric import Metric
-from metrics.metric_helpers import *
+from metrics.metric_helper_functions import *
 from pydriller import ModificationType
 
 #DDEV
@@ -11,43 +10,32 @@ class Metric_DDEV(Metric):
     def __init__(self, repository):
         super().__init__(repository)
         self.contributors_per_file = {}
-        self.contributors_per_rfm_commit = {}
+        self.contributors_per_file_waypoints = {}
 
     #Called once per file in a commit
-    def pre_calc_per_file(self, file, commit, is_rfm_commit, rfm_commit):
+    def pre_calc_per_file(self, file, pr_commit, is_rfm_commit, rfm_commit):
         #File name changed in this commit
         if file.change_type == ModificationType.RENAME:
+            #Reference the previous path for continuity
             self.contributors_per_file[file.new_path] = self.contributors_per_file.setdefault(file.old_path, {})
         #Per path have dict of authors with number of lines contributed
-        author = commit.author.email.strip()
+        author = pr_commit.author.email.strip()
         contribs_path_for_path = self.contributors_per_file.setdefault(file.new_path, {})
         contribs_path_for_path[author] = contribs_path_for_path.get(author, 0) + file.added_lines + file.deleted_lines
 
-    #Makes a waypoint from given data
-    def make_waypoint(self, contributors, commit, rfm_commit):
-        #Set DDEV waypoint for each file in the commit
-        waypoint = []
-        for rfm_file in rfm_commit["rfm_data"]["refactored_files"]:
-            #File has contributors
-            if rfm_file in contributors.keys():
-                #Append object: file => unique count of devs
-                waypoint.append(
-                    {
-                        "file": rfm_file,
-                        "metric": len(list(set(contributors[rfm_file].keys())))
-                    }
-                )
-        return waypoint
-
-    #Called once per commit, includes current commit
-    def pre_calc_per_commit(self, commit, is_rfm_commit, rfm_commit):
+    #Called once per commit, includes current commit data (post pre_calc_per_file call)
+    def pre_calc_per_commit_inclusive(self, pr_commit, is_rfm_commit, rfm_commit):
         if is_rfm_commit:
-            #Set DDEV waypoint for each file in the commit
-            self.contributors_per_rfm_commit[commit.hash] = self.make_waypoint(self.contributors_per_file, commit, rfm_commit)
+            #Make a waypoint for this rfm_commit. Number of unique contributors per rfm_file
+            self.contributors_per_file_waypoints[pr_commit.hash] = helper_make_waypoint_per_rfm_file(
+                self.contributors_per_file, 
+                rfm_commit["rfm_data"]["refactored_files"],
+                lambda data: len(list(set(data.keys())))
+            )
 
     #Called to fetch the metric value for current commit
-    def get_metric(self, previous_commit, current_commit):
+    def get_metric(self, prev_rfm_commit, cur_rfm_commit, pr_commit):
         #DDEV waypoint set for current_commit
-        if current_commit["commit_hash"] in self.contributors_per_rfm_commit.keys():
-            return helper_summ_to_commit_level(self.contributors_per_rfm_commit[current_commit["commit_hash"]])
+        if cur_rfm_commit["commit_hash"] in self.contributors_per_file_waypoints.keys():
+            return helper_summ_to_commit_level(self.contributors_per_file_waypoints[cur_rfm_commit["commit_hash"]])
         return 0
