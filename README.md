@@ -1,3 +1,19 @@
+# SDMO Project 2024
+
+![GitHub commit activity](https://img.shields.io/github/commit-activity/t/nopgtb/SDMO)
+![GitHub last commit](https://img.shields.io/github/last-commit/nopgtb/SDMO)
+![GitHub top language](https://img.shields.io/github/languages/top/nopgtb/SDMO)
+![GitHub language count](https://img.shields.io/github/languages/count/nopgtb/SDMO)
+![GitHub License](https://img.shields.io/github/license/nopgtb/SDMO)
+![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/nopgtb/SDMO)
+![GitHub repo size](https://img.shields.io/github/repo-size/nopgtb/SDMO)
+![GitHub forks](https://img.shields.io/github/forks/nopgtb/SDMO)
+![GitHub Repo stars](https://img.shields.io/github/stars/nopgtb/SDMO)
+
+
+
+
+
 github_search - usefull if you can use the API for the bonus of A, sent a email about this no answer yet  
 option_b_decode_git_urls - Decode the git urls from the sonar_measures csv  
 github_fetcher - Clones projects given a csv file (git_link at index 0 for each line)  
