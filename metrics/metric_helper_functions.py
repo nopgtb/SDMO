@@ -1,3 +1,4 @@
+import re
 from os import path
 
 #Summs metrics into one number
@@ -62,3 +63,41 @@ def helper_make_waypoint_per_rfm_file_neigbours(data, rfm_files, waypoint_metric
         excluded_file_index = excluded_file_index - 1
         neighbours.append(excluded_file)
     return metric_data
+
+#Extract potential java package name from source code
+def helper_extract_java_package_name(source_code):
+    #if we have source code
+    if source_code:
+        #Is the package keyword present in the source code. Extract the name
+        packages_modified = re.findall(r'package\s+([\w\.]+);', source_code)
+        if packages_modified:
+            #https://docs.oracle.com/javase/tutorial/java/package/createpkgs.html
+            #file can have only one package declaration
+            return packages_modified[0]
+        #If you do not use a package statement, your type ends up in an unnamed package
+        #docs say so, thus we consider this a package
+        return "unnamed"
+    #No package possible, we do not have source code
+    return ""
+
+#Extracts all modified packages from the commit source file
+def helper_extract_modified_packages(file):
+    #Get current and past source code
+    file_source_codes = [file.source_code_before, file.source_code]
+    potential_packages = []
+    #Run trough the source files
+    for file_source_code in file_source_codes:
+        package = helper_extract_java_package_name(file_source_code)
+        if package:
+            potential_packages.append(package)
+    #return unique package names
+    return list(set(potential_packages))
+
+#Returns the largest contributor to the given file
+def helper_get_largest_contributor_for_file(data, file):
+    largest_contributor = {"author": "",  "lines": 0}
+    #Find out the largest contributor
+    for author in data[file]:
+        if data[file][author] > largest_contributor["lines"]:
+            largest_contributor = {"author": author, "lines": data[file][author]}
+    return largest_contributor

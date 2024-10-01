@@ -8,3 +8,5 @@ from .metric_own import Metric_OWN
 from .metric_minor import Metric_MINOR
 from .metric_nadev import Metric_NADEV
 from .metric_nddev import Metric_NDDEV
+from .metric_sctr import Metric_SCTR
+from .metric_nsctr import Metric_NSCTR

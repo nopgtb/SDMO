@@ -23,3 +23,7 @@ class Metric:
     #Called to fetch the metric value for current commit
     def get_metric(self, prev_rfm_commit, cur_rfm_commit, pr_commit):
         pass
+    
+    #Data provider for the metric
+    def get_data_provider(self):
+        return None
