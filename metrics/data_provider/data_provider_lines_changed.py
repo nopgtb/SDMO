@@ -1,9 +1,9 @@
-from .data_provider import Data_Provider
+from .data_provider_interface import Data_Provider_Interface
 from pydriller import ModificationType
 
 #Metrics rely on common data. Instead of each metric calculating it on its own
 #data provider will provide it from single source making it available for all metrics
-class Data_Provider_Lines_Changed(Data_Provider):
+class Data_Provider_Lines_Changed(Data_Provider_Interface):
 
     #Called once per file in a commit
     def pre_calc_per_file(self, file, pr_commit, is_rfm_commit, rfm_commit):

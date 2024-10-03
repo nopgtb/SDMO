@@ -1,26 +1,26 @@
-from metrics.metric import Metric
+from metrics.metric_interface import Metric_Interface
 from metrics.metric_helper_functions import *
-from metrics.data_provider.data_provider_contributions import Data_Provider_Contributions
+from metrics.data_provider.data_provider_contributions_per_file_per_author import Data_Provider_Contributions_Per_File_Per_Author
 
 #MINOR
 #The number of contributors who contributed less than 5% of a given file up to the considered commit. 
-class Metric_MINOR(Metric):
+class Metric_MINOR(Metric_Interface):
 
     #Store the repo
     def __init__(self, repository):
         super().__init__(repository)
         self.minor_authors_in_file_waypoint = {}
         self.minor_author_treshold = 0.05
-        self.data_provider = Data_Provider_Contributions(repository)
+        self.data_provider = Data_Provider_Contributions_Per_File_Per_Author(repository)
 
-    #Data provider for the metric
-    def get_data_provider(self):
-        return self.data_provider
+    #Data providers for the metric
+    def get_data_providers(self):
+        return [self.data_provider]
 
     #Called once per file in a commit
     def pre_calc_per_file(self, file, pr_commit, is_rfm_commit, rfm_commit):
         if is_rfm_commit:
-            metric_data = self.get_data_provider().get_data()
+            metric_data = self.data_provider.get_data()
             if metric_data:
                 #Function for getting minor author count
                 def get_minor_author_count(data):

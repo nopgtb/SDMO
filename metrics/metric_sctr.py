@@ -1,5 +1,4 @@
-import re
-from metrics.metric import Metric
+from metrics.metric_interface import Metric_Interface
 from metrics.data_provider.data_provider_packages_modified import Data_Provider_Packages_Modified
 
 # - Java file can only be part of one package
@@ -10,20 +9,20 @@ from metrics.data_provider.data_provider_packages_modified import Data_Provider_
 
 #SCTR
 #The number of packages modified by the committer in the considered commit.
-class Metric_SCTR(Metric):
+class Metric_SCTR(Metric_Interface):
 
     #Store the repo
     def __init__(self, repository):
         super().__init__(repository)
         self.data_provider = Data_Provider_Packages_Modified(repository)
 
-    #Data provider for the metric
-    def get_data_provider(self):
-        return self.data_provider
+    #Data providers for the metric
+    def get_data_providers(self):
+        return [self.data_provider]
 
     #Called to fetch the metric value for current commit
     def get_metric(self, prev_rfm_commit, cur_rfm_commit, pr_commit):
-        metric_data = self.get_data_provider().get_data()
+        metric_data = self.data_provider.get_data()
         if metric_data:
             #SCTR count the unique packages modified in our commit
             if cur_rfm_commit["commit_hash"] in metric_data.keys():

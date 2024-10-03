@@ -10,3 +10,5 @@ from .metric_nadev import Metric_NADEV
 from .metric_nddev import Metric_NDDEV
 from .metric_sctr import Metric_SCTR
 from .metric_nsctr import Metric_NSCTR
+from .metric_oexp import Metric_OEXP
+from .metric_exp import Metric_EXP

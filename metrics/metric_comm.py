@@ -1,11 +1,11 @@
-from metrics.metric import Metric
+from metrics.metric_interface import Metric_Interface
 from metrics.metric_helper_functions import *
 from metrics.data_provider.data_provider_commits_from_last_rfmc import Data_Provider_Commits_From_Last_Rfmc
 
 #COMM
 #The cumulative number of commits made to a file up to the considered commit starting from the previous refactoring commit
 #(consider the commit with the introduction of the file as the previous commit when dealing with the first refactoring commit)
-class Metric_COMM(Metric):
+class Metric_COMM(Metric_Interface):
 
     #Store the repo
     def __init__(self, repository):
@@ -13,14 +13,14 @@ class Metric_COMM(Metric):
         self.commit_per_file_waypoints = {}
         self.data_provider = Data_Provider_Commits_From_Last_Rfmc(repository)
 
-    #Data provider for the metric
-    def get_data_provider(self):
-        return self.data_provider
+    #Data providers for the metric
+    def get_data_providers(self):
+        return [self.data_provider]
 
     #Called once per commit, includes current commit data (post pre_calc_per_file call)
     def pre_calc_per_commit_inclusive(self, pr_commit, is_rfm_commit, rfm_commit):
         if is_rfm_commit:
-            metric_data = self.get_data_provider().get_data()
+            metric_data = self.data_provider.get_data()
             if metric_data:
                 #Make a waypoint for this rfm_commit. sum of data per rfm_file
                 self.commit_per_file_waypoints[pr_commit.hash] = helper_make_waypoint_per_rfm_file(

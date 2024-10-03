@@ -1,5 +1,3 @@
-#todo seperate ouput foor the diffrent levels
-
 import metrics
 from os import path
 from common import *
@@ -20,69 +18,62 @@ metrics_table = {
     "NADEV": metrics.Metric_NADEV,
     "NDDEV": metrics.Metric_NDDEV,
     "SCTR": metrics.Metric_SCTR,
-    #"NSCTR": metrics.Metric_NSCTR,
+    "NSCTR": metrics.Metric_NSCTR,
+    "OEXP": metrics.Metric_OEXP,
+    "EXP": metrics.Metric_EXP
 }
 
 #Get all unique data providers from the given metrics
 def get_data_providers(metrics):
-    all_providers = [metrics[m].get_data_provider() for m in metrics]
+    all_providers = [dp for m in metrics for dp in metrics[m].get_data_providers()]
     #List of all unique providers
     unique_providers = []
     for provider in all_providers:
         if provider:
             #Is in the provider list?
             if not isinstance(provider, tuple([type(up) for up in unique_providers])):
-                #no, append it
                 unique_providers.append(provider)
     return unique_providers
 
 #Runs precalculations on the given metric calculators
 def run_metric_precalculations(repository, rfm_commit_data, metrics_calculators):
-    data_providers = get_data_providers(metrics_calculators)
-    #Start external tools and run per repository calculations
-    for provider in data_providers:
-        provider.reset_data()
-        provider.pre_calc_run_external()
-        provider.pre_calc_per_repository()
+    #All calculators, providers first then metric calculators
+    data_calculators = get_data_providers(metrics_calculators) + [metrics_calculators[mc] for mc in metrics_calculators]
 
-    #run precalculations on the repo. Call pre_cals for each commit and file
+    #Reset data, start tools and run repository pre_calcs
+    for calculator in data_calculators:
+        calculator.reset_data()
+        calculator.pre_calc_run_external()
+        calculator.pre_calc_per_repository()
+
+    #Run calculations on the commits and files
     for commit in Repository(repository["local_path"]).traverse_commits():
-        #If we are a commit with mined refactoring data get it
+        #Are we a rfm commit? if so store the pydriller commit for later use
         is_rfm_commit = (commit.hash in rfm_commit_data)
         rfm_commit = rfm_commit_data.get(commit.hash, None)
-
-        #Per commit pre_calc for providers
-        for provider in data_providers:
-            provider.pre_calc_per_commit_exlusive(commit, is_rfm_commit, rfm_commit)
-
-        #Per commit pre_calc for metrics to set waypoints
-        for metric_calc in metrics_calculators:
-            metrics_calculators[metric_calc].pre_calc_per_commit_exlusive(commit, is_rfm_commit, rfm_commit)
-
-        #Per file pre_calc for providers
-        for modified_file in commit.modified_files:
-            #Per file pre_calc for providers
-            for provider in data_providers:
-                provider.pre_calc_per_file(modified_file, commit, is_rfm_commit, rfm_commit)
-            #Per file pre_cal for metrics
-            for metric_calc in metrics_calculators:
-                metrics_calculators[metric_calc].pre_calc_per_file(modified_file, commit, is_rfm_commit, rfm_commit)
-        
-        #Per commit pre_calc inclusive for metrics to set waypoints
-        for metric_calc in metrics_calculators:
-            metrics_calculators[metric_calc].pre_calc_per_commit_inclusive(commit, is_rfm_commit, rfm_commit)
-
-        #Per commit pre_calc for providers
-        for provider in data_providers:
-            provider.pre_calc_per_commit_inclusive(commit, is_rfm_commit, rfm_commit)
-        
-        #Append the pydriller commit
         if is_rfm_commit:
             rfm_commit_data[commit.hash]["pr_commit"] = commit
-            
+
+        #Run exclusive commit calculations
+        for calculator in data_calculators:
+            calculator.pre_calc_per_commit_exlusive(commit, is_rfm_commit, rfm_commit)
+        
+        #Run per file calculations
+        for modified_file in commit.modified_files:
+            for calculator in data_calculators:
+                calculator.pre_calc_per_file(modified_file, commit, is_rfm_commit, rfm_commit)
+        
+        #Run inclusive commit calculations
+        for calculator in data_calculators:
+            calculator.pre_calc_per_commit_inclusive(commit, is_rfm_commit, rfm_commit)
+        
+        #Run reset checks for calculators
+        for calculator in data_calculators:
+            calculator.pre_calc_check_for_reset(commit, is_rfm_commit, rfm_commit)
+
     #Wait for external tools to finish
-    for provider in data_providers:
-        provider.pre_calc_wait_for_external()
+    for calculator in data_calculators:
+        calculator.pre_calc_wait_for_external()
 
 #Load up the available data from the part 1 files
 def load_commit_data(repository):
@@ -114,7 +105,6 @@ def get_metric_data(metrics_to_run, repository):
         metrics_to_run = metrics_table.keys()
     #Build metric calculators
     metric_calculators = {}
-    #Get the metric calculator objects
     for metric_to_run in metrics_to_run:
         metric_calculators[metric_to_run] = metrics_table[metric_to_run](repository)
     #Run precalculations on the metric calculators
@@ -122,12 +112,13 @@ def get_metric_data(metrics_to_run, repository):
     #Get metric data for the rfm commits
     metrics_data = []
     prev_rfm_commit = None
+    #print(get_timestamp(), ": pre calc done")
     for commit_hash, rfm_commit in list(rfm_commit_data.items()):
-        print(get_timestamp(), ": ", commit_hash)
+        #print(get_timestamp(), ": ", commit_hash)
         rfm_commit_metrics = {"commit_hash": commit_hash}
         #Run it trought the metric calculators
         for metric_calc in metric_calculators:
-            rfm_commit_metrics["metric_" + str(len(rfm_commit_metrics.keys()))] = metric_calculators[metric_calc].get_metric(prev_rfm_commit, rfm_commit, rfm_commit["pr_commit"])
+            rfm_commit_metrics["metric_" + metric_calc] = metric_calculators[metric_calc].get_metric(prev_rfm_commit, rfm_commit, rfm_commit["pr_commit"])
         metrics_data.append(rfm_commit_metrics)
         prev_rfm_commit = rfm_commit
     return metrics_data

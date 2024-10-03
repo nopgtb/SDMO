@@ -101,3 +101,12 @@ def helper_get_largest_contributor_for_file(data, file):
         if data[file][author] > largest_contributor["lines"]:
             largest_contributor = {"author": author, "lines": data[file][author]}
     return largest_contributor
+
+#Returns name of the author that is highest commiter of the file based on the given data
+def helper_get_highest_commiter_of_file(data, file):
+    highest_commiter = {"author": "", "commits":0}
+    for author in data[file]:
+        commits_authored = sum(data[file][author])
+        if commits_authored > highest_commiter["commits"]:
+            highest_commiter = {"author":author, "commits": commits_authored}
+    return highest_commiter

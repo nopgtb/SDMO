@@ -1,8 +1,5 @@
-#Abstract class for implementing metric calculations
-class Metric:
-    #Store the repo
-    def __init__(self, repository):
-        self.repository = repository
+#Abstract class providing interface
+class Data_Calculator_Interface(object):
 
     #Called once per file in a commit
     def pre_calc_per_file(self, file, pr_commit, is_rfm_commit, rfm_commit):
@@ -20,10 +17,21 @@ class Metric:
     def pre_calc_per_repository(self):
         pass
 
-    #Called to fetch the metric value for current commit
-    def get_metric(self, prev_rfm_commit, cur_rfm_commit, pr_commit):
+    #Start a external proc for the data
+    def pre_calc_run_external(self):
         pass
-    
-    #Data provider for the metric
-    def get_data_provider(self):
-        return None
+
+    #Wait for the external proc to finish
+    #and make its data available to metrics
+    def pre_calc_wait_for_external(self):
+        pass
+
+    #If the calculator needs to reset calculations
+    #at somepoint this is where to do it
+    #its called last after pre_calc_per_* functions
+    def pre_calc_check_for_reset(self, commit, is_rfm_commit, rfm_commit):
+        pass
+
+    #Reset calculator data
+    def reset_data(self):
+        pass

@@ -1,20 +1,20 @@
-from metrics.metric import Metric
+from metrics.metric_interface import Metric_Interface
 from metrics.metric_helper_functions import *
-from metrics.data_provider.data_provider_contributions import Data_Provider_Contributions
+from metrics.data_provider.data_provider_contributions_per_file_per_author import Data_Provider_Contributions_Per_File_Per_Author
 
 #OWN
 #Measures the percentage of the lines authored by the highest contributor of a file in the considered commit. 
-class Metric_OWN(Metric):
+class Metric_OWN(Metric_Interface):
 
     #Store the repo
     def __init__(self, repository):
         super().__init__(repository)
         self.lines_authored_per_commit = {}
-        self.data_provider = Data_Provider_Contributions(repository)
+        self.data_provider = Data_Provider_Contributions_Per_File_Per_Author(repository)
 
-    #Data provider for the metric
-    def get_data_provider(self):
-        return self.data_provider
+    #Data providers for the metric
+    def get_data_providers(self):
+        return [self.data_provider]
 
     #Called once per file in a commit
     def pre_calc_per_file(self, file, pr_commit, is_rfm_commit, rfm_commit):
@@ -26,7 +26,7 @@ class Metric_OWN(Metric):
 
     #Called to fetch the metric value for current commit
     def get_metric(self, prev_rfm_commit, cur_rfm_commit, pr_commit):
-        metric_data = self.get_data_provider().get_data()
+        metric_data = self.data_provider.get_data()
         if metric_data:
             metric_own = []
             for file in self.lines_authored_per_commit[cur_rfm_commit["commit_hash"]]:

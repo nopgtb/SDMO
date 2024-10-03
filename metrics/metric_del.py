@@ -1,23 +1,23 @@
-from metrics.metric import Metric
+from metrics.metric_interface import Metric_Interface
 from metrics.metric_helper_functions import *
 from metrics.data_provider.data_provider_lines_changed import Data_Provider_Lines_Changed
 
 #DEL
 #The normalized (by the total number of deleted lines in that file since it was created) number of lines removed from a given file in the considered commit.
-class Metric_DEL(Metric):
+class Metric_DEL(Metric_Interface):
 
     #Store the repo
     def __init__(self, repository):
         super().__init__(repository)
         self.data_provider = Data_Provider_Lines_Changed(repository)
 
-    #Data provider for the metric
-    def get_data_provider(self):
-        return self.data_provider
+    #Data providers for the metric
+    def get_data_providers(self):
+        return [self.data_provider]
 
     #Called to fetch the metric value for current commit
     def get_metric(self, prev_rfm_commit, cur_rfm_commit, pr_commit):
-        metric_data = self.get_data_provider().get_data()
+        metric_data = self.data_provider.get_data()
         if metric_data:
             metric_data = metric_data["deleted"]
             #Sum all removed lines per refactored lines

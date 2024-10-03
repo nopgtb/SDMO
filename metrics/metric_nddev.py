@@ -1,6 +1,6 @@
-from metrics.metric import Metric
+from metrics.metric_interface import Metric_Interface
 from metrics.metric_helper_functions import *
-from metrics.data_provider.data_provider_contributions import Data_Provider_Contributions
+from metrics.data_provider.data_provider_contributions_per_file_per_author import Data_Provider_Contributions_Per_File_Per_Author
 
 #- Num of devs in neirbouring files (Other files in our rfm_commit)
 #    - Changed the same set of rfm_files, exluding considered file (neighbours)
@@ -15,22 +15,22 @@ from metrics.data_provider.data_provider_contributions import Data_Provider_Cont
 #NDDEV
 #The number of distinct developers who, given the considered commit, changed the same specific files up to the considered commit
 #starting from the point in which the file was introduced
-class Metric_NDDEV(Metric):
+class Metric_NDDEV(Metric_Interface):
 
     #Store the repo
     def __init__(self, repository):
         super().__init__(repository)
         self.contributors_per_files_neighbours_waypoints = {}
-        self.data_provider = Data_Provider_Contributions(repository)
+        self.data_provider = Data_Provider_Contributions_Per_File_Per_Author(repository)
 
-    #Data provider for the metric
-    def get_data_provider(self):
-        return self.data_provider
+    #Data providers for the metric
+    def get_data_providers(self):
+        return [self.data_provider]
     
     #Called once per commit, includes current commit data (post pre_calc_per_file call)
     def pre_calc_per_commit_inclusive(self, pr_commit, is_rfm_commit, rfm_commit):
         if is_rfm_commit:
-            metric_data = self.get_data_provider().get_data()
+            metric_data = self.data_provider.get_data()
             if metric_data:
                 #Make a waypoint for this rfm_commit. Number of "Distinct" contributors per rfm_files neighbours
                 self.contributors_per_files_neighbours_waypoints[pr_commit.hash] = helper_make_waypoint_per_rfm_file_neigbours(
@@ -45,3 +45,7 @@ class Metric_NDDEV(Metric):
         if cur_rfm_commit["commit_hash"] in self.contributors_per_files_neighbours_waypoints.keys():
             return self.contributors_per_files_neighbours_waypoints[cur_rfm_commit["commit_hash"]]
         return 0
+    
+    #Returns at what level was the metric collected at
+    def get_collection_level():
+        return "file"
