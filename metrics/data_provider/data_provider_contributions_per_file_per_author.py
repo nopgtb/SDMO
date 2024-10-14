@@ -1,4 +1,5 @@
 from .data_provider_interface import Data_Provider_Interface
+from metrics.data_calculator_util import *
 from pydriller import ModificationType
 
 #Metrics rely on common data. Instead of each metric calculating it on its own
@@ -12,7 +13,7 @@ class Data_Provider_Contributions_Per_File_Per_Author(Data_Provider_Interface):
             #Reference the previous path for continuity
             self.contributors_per_file[file.new_path] = self.contributors_per_file.setdefault(file.old_path, {})
         #Per path have dict of authors with number of lines contributed
-        author = pr_commit.author.email.strip()
+        author = helper_commit_author(pr_commit)
         contribs_path_for_path = self.contributors_per_file.setdefault(file.new_path, {})
         contribs_path_for_path[author] = contribs_path_for_path.get(author, 0) + file.added_lines + file.deleted_lines
 

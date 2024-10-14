@@ -1,12 +1,12 @@
 #Abstract class providing interface
 class Data_Calculator_Interface(object):
 
-    #Called once per file in a commit
-    def pre_calc_per_file(self, file, pr_commit, is_rfm_commit, rfm_commit):
-        pass
-
     #Called once per commit, excludes current commit data (pre pre_calc_per_file call)
     def pre_calc_per_commit_exlusive(self, pr_commit, is_rfm_commit, rfm_commit):
+        pass
+
+    #Called once per file in a commit
+    def pre_calc_per_file(self, file, pr_commit, is_rfm_commit, rfm_commit):
         pass
 
     #Called once per commit, includes current commit data (post pre_calc_per_file call)

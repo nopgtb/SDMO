@@ -1,5 +1,5 @@
 from metrics.metric_interface import Metric_Interface
-from metrics.metric_helper_functions import *
+from metrics.data_calculator_util import *
 from metrics.data_provider.data_provider_contributions_per_author import Data_Provider_Contributions_Per_Author
 from metrics.data_provider.data_provider_total_lines_authored_in_project import Data_Provider_Total_Lines_Authored_In_Project
 

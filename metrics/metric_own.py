@@ -1,5 +1,5 @@
 from metrics.metric_interface import Metric_Interface
-from metrics.metric_helper_functions import *
+from metrics.data_calculator_util import *
 from metrics.data_provider.data_provider_contributions_per_file_per_author import Data_Provider_Contributions_Per_File_Per_Author
 
 #OWN
@@ -20,7 +20,7 @@ class Metric_OWN(Metric_Interface):
     def pre_calc_per_file(self, file, pr_commit, is_rfm_commit, rfm_commit):
         #is refactorings commit
         if is_rfm_commit:
-            author = pr_commit.author.email.strip()
+            author = helper_commit_author(pr_commit)
             #For rfm commits note the author and his/hers contribution to the file
             self.lines_authored_per_commit.setdefault(pr_commit.hash, {})[file.new_path] = {"author": author, "lines": (file.added_lines + file.deleted_lines)}
 
@@ -39,5 +39,5 @@ class Metric_OWN(Metric_Interface):
                 metric_own.append(data)
             #Sum to commit level, normalize using normal count
             if metric_own:
-                return helper_summ_to_commit_level(metric_own) / len(metric_own)
+                return helper_sum_to_commit_level(metric_own) / len(metric_own)
         return 0

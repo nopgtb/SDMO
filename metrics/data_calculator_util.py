@@ -2,19 +2,19 @@ import re
 from os import path
 
 #Summs metrics into one number
-def helper_summ_to_commit_level(metric):
+def helper_sum_to_commit_level(metric):
     return sum([m["metric"] for m in metric])
 
-#Sums the given data per given rfm file
-def helper_sum_metric_per_rfm_file(rfm_files, data):
+#Sums the given data per given file
+def helper_sum_metric_per_file(files, data):
     metric = []
-    for rfm_file in rfm_files:
-        if rfm_file in data.keys():
-            metric.append({"file": rfm_file, "metric": sum(data[rfm_file])})
+    for file in files:
+        if file in data.keys():
+            metric.append({"file": file, "metric": sum(data[file])})
     return metric
 
-#Per rfm file returns metric normalized by the total data
-def helper_normalized_metric_per_rfm_file(cur_data, total_data):
+#Per file returns metric normalized by the total data
+def helper_normalized_metric_per_file(cur_data, total_data):
     norm_metric = []
     for cur in cur_data:
         for total in total_data:
@@ -28,26 +28,11 @@ def helper_normalized_metric_per_rfm_file(cur_data, total_data):
                 break
     return norm_metric
 
-#Makes a waypoint from given data
-def helper_make_waypoint_per_rfm_file(data, rfm_files, waypoint_metric_func):
-    #waypoint for each rfm_file in the commit
-    waypoint = []
-    for rfm_file in rfm_files:
-        #file has data
-        if rfm_file in data.keys():
-            waypoint.append(
-                {
-                    "file": rfm_file,
-                    "metric": waypoint_metric_func(data[rfm_file])
-                }
-            )
-    return waypoint
-
-#Calculates metric values for the given rfm_files from the given data
-def helper_make_waypoint_per_rfm_file_neigbours(data, rfm_files, waypoint_metric_func):
+#Calculates metric values for the given files from the given data
+def helper_make_waypoint_per_file_neigbours(data, files, waypoint_metric_func):
     metric_data = []
     #Dont modify the source
-    neighbours = list(rfm_files)
+    neighbours = list(files)
     excluded_file_index = len(neighbours) - 1
     #run trough files calculating metric
     while excluded_file_index >= 0:
@@ -75,22 +60,24 @@ def helper_extract_java_package_name(source_code):
             #file can have only one package declaration
             return packages_modified[0]
         #If you do not use a package statement, your type ends up in an unnamed package
-        #docs say so, thus we consider this a package
-        return "unnamed"
+        #if you want to consider it a unique package uncomment the line below
+        #return "unnamed"
     #No package possible, we do not have source code
     return ""
 
 #Extracts all modified packages from the commit source file
 def helper_extract_modified_packages(file):
-    #Get current and past source code
-    file_source_codes = [file.source_code_before, file.source_code]
     potential_packages = []
-    #Run trough the source files
-    for file_source_code in file_source_codes:
-        package = helper_extract_java_package_name(file_source_code)
-        if package:
-            potential_packages.append(package)
-    #return unique package names
+    #We are a java file
+    if file.filename[len(file.filename)-5:] == ".java":
+        #Get current and past source code
+        file_source_codes = [file.source_code_before, file.source_code]
+        #Run trough the source files
+        for file_source_code in file_source_codes:
+            package = helper_extract_java_package_name(file_source_code)
+            if package:
+                potential_packages.append(package)
+        #return unique package names
     return list(set(potential_packages))
 
 #Returns the largest contributor to the given file
@@ -110,3 +97,11 @@ def helper_get_highest_commiter_of_file(data, file):
         if commits_authored > highest_commiter["commits"]:
             highest_commiter = {"author":author, "commits": commits_authored}
     return highest_commiter
+
+#Gets paths of modified files in list form
+def helper_list_commit_files(pr_commit):
+    return [f.new_path for f in pr_commit.modified_files]
+
+#Gets author of the commit
+def helper_commit_author(pr_commit):
+    return pr_commit.author.email.strip()

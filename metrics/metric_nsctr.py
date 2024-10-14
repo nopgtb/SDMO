@@ -1,5 +1,5 @@
 from metrics.metric_interface import Metric_Interface
-from metrics.metric_helper_functions import *
+from metrics.data_calculator_util import *
 from metrics.data_provider.data_provider_packages_modified import Data_Provider_Packages_Modified
 
 # - Java file can only be part of one package
@@ -43,7 +43,7 @@ class Metric_NSCTR(Metric_Interface):
     #Called to fetch the metric value for current commit
     def get_metric(self, prev_rfm_commit, cur_rfm_commit, pr_commit):
         #NSCTR Metric per rfm files in the rfm commit
-        return helper_sum_metric_per_rfm_file(cur_rfm_commit["rfm_data"]["refactored_files"], self.total_neighbour_packages_modified)
+        return helper_sum_metric_per_file(cur_rfm_commit["rfm_data"]["refactored_files"], self.total_neighbour_packages_modified)
     
     #Returns at what level was the metric collected at
     def get_collection_level():

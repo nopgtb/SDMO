@@ -1,5 +1,5 @@
 from metrics.metric_interface import Metric_Interface
-from metrics.metric_helper_functions import *
+from metrics.data_calculator_util import *
 from metrics.data_provider.data_provider_lines_changed import Data_Provider_Lines_Changed
 
 #ADD
@@ -21,12 +21,12 @@ class Metric_ADD(Metric_Interface):
         if metric_data:
             metric_data = metric_data["added"]
             #Sum all added lines for refactored lines
-            total_lines_added = helper_sum_metric_per_rfm_file(cur_rfm_commit["rfm_data"]["refactored_files"], metric_data)
+            total_lines_added = helper_sum_metric_per_file(cur_rfm_commit["rfm_data"]["refactored_files"], metric_data)
             #Get lines added in our specific commit
             commit_lines_added = [{"file":rfm_file["new_path"], "metric":len(rfm_file["diff_parsed"]["added"])} for rfm_file in cur_rfm_commit["diff"]]
             #calculate normals per file
-            metric_add = helper_normalized_metric_per_rfm_file(commit_lines_added, total_lines_added)
+            metric_add = helper_normalized_metric_per_file(commit_lines_added, total_lines_added)
             #Sum to commit level, normalize using normal count
             if metric_add:
-                return helper_summ_to_commit_level(metric_add) / len(metric_add)
+                return helper_sum_to_commit_level(metric_add) / len(metric_add)
         return 0

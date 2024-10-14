@@ -1,5 +1,5 @@
 from metrics.metric_interface import Metric_Interface
-from metrics.metric_helper_functions import *
+from metrics.data_calculator_util import *
 from metrics.data_provider.data_provider_commits_from_last_rfmc import Data_Provider_Commits_From_Last_Rfmc
 
 #NCOMM
@@ -24,7 +24,7 @@ class Metric_NCOMM(Metric_Interface):
             metric_data = self.data_provider.get_data()
             if metric_data:
                 #Make a waypoint for this rfm_commit. per rfm_file, sum its neighbours commits
-                self.commit_per_file_neighbours_waypoints[pr_commit.hash] = helper_make_waypoint_per_rfm_file_neigbours(
+                self.commit_per_file_neighbours_waypoints[pr_commit.hash] = helper_make_waypoint_per_file_neigbours(
                     metric_data, 
                     rfm_commit["rfm_data"]["refactored_files"],
                     lambda data: sum(data)

@@ -1,5 +1,5 @@
 from .data_provider_interface import Data_Provider_Interface
-from metrics.metric_helper_functions import *
+from metrics.data_calculator_util import *
 
 #Metrics rely on common data. Instead of each metric calculating it on its own
 #data provider will provide it from single source making it available for all metrics

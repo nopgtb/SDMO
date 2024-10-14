@@ -17,10 +17,22 @@ metrics_table = {
     "MINOR": metrics.Metric_MINOR,
     "NADEV": metrics.Metric_NADEV,
     "NDDEV": metrics.Metric_NDDEV,
-    "SCTR": metrics.Metric_SCTR,
-    "NSCTR": metrics.Metric_NSCTR,
     "OEXP": metrics.Metric_OEXP,
-    "EXP": metrics.Metric_EXP
+    "EXP": metrics.Metric_EXP,
+    "ND": metrics.Metric_ND,
+    "NF": metrics.Metric_NF,
+    "NS": metrics.Metric_NS,
+    "ENTROPY": metrics.Metric_ENTROPY,
+    "LA": metrics.Metric_LA,
+    "LD": metrics.Metric_LD,
+    "LT": metrics.Metric_LT,
+    "FIX": metrics.Metric_FIX,
+    "NDEV": metrics.Metric_NDEV,
+    "AGE": metrics.Metric_AGE,
+    "NUC": metrics.Metric_NUC,
+    "CEXP": metrics.Metric_CEXP,
+    "REXP": metrics.Metric_REXP,
+    "SEXP": metrics.Metric_SEXP
 }
 
 #Get all unique data providers from the given metrics
@@ -112,7 +124,7 @@ def get_metric_data(metrics_to_run, repository):
     #Get metric data for the rfm commits
     metrics_data = []
     prev_rfm_commit = None
-    #print(get_timestamp(), ": pre calc done")
+    print(get_timestamp(), ": pre calc done")
     for commit_hash, rfm_commit in list(rfm_commit_data.items()):
         #print(get_timestamp(), ": ", commit_hash)
         rfm_commit_metrics = {"commit_hash": commit_hash}
