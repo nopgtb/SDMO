@@ -15,12 +15,19 @@ class Metric_LT(Metric_Interface):
     def get_data_providers(self):
         return []
 
-    #Called once per file in a commit
-    def pre_calc_per_file(self, file, pr_commit, is_rfm_commit, rfm_commit):
-        if file.source_code_before:
-            self.lines_before.get(pr_commit.hash, 0) + len(file.source_code_before.splitlines())
+    #Returns name of the metric as str
+    def get_metric_name(self):
+        return "LT"
 
+    #Returns at what level was the metric collected at
+    def get_collection_level(self):
+        return "commit"
+
+    #Called once per file in a commit
+    def pre_calc_per_file(self, file, commit, is_commit_of_interest, calc_only_commits_of_interest):
+        if file.source_code_before and (is_commit_of_interest or not calc_only_commits_of_interest):
+            self.lines_before.get(commit.hash, 0) + len(file.source_code_before.splitlines())
 
     #Called to fetch the metric value for current commit
-    def get_metric(self, prev_rfm_commit, cur_rfm_commit, pr_commit):
-        return self.lines_before.get(pr_commit.hash, 0)
+    def get_metric(self, commit_hash):
+        return self.lines_before.get(commit_hash, 0)

@@ -12,34 +12,42 @@ class Metric_SEXP(Metric_Interface):
         super().__init__(repository)
         #package => author => number of commits
         self.package_commits_made = {}
-        self.package_commits_made_rfm_waypoints = {}
+        self.package_commits_made_coi_waypoints = {}
         self.packages_in_this_commit = []
 
     #Data providers for the metric
     def get_data_providers(self):
         return []
     
+    #Returns name of the metric as str
+    def get_metric_name(self):
+        return "SEXP"
+    
+    #Returns at what level was the metric collected at
+    def get_collection_level(self):
+        return "file"
+
     #Called once per commit, excludes current commit data (pre pre_calc_per_file call)
-    def pre_calc_per_commit_exlusive(self, pr_commit, is_rfm_commit, rfm_commit):
+    def pre_calc_per_commit_exlusive(self, commit, is_commit_of_interest, calc_only_commits_of_interest):
         self.packages_in_this_commit = []
-        if is_rfm_commit:
-            self.package_commits_made_rfm_waypoints[pr_commit.hash] = {}
+        if is_commit_of_interest or not calc_only_commits_of_interest:
+            self.package_commits_made_coi_waypoints[commit.hash] = {}
 
     #Called once per file in a commit
-    def pre_calc_per_file(self, file, pr_commit, is_rfm_commit, rfm_commit):
+    def pre_calc_per_file(self, file, commit, is_commit_of_interest, calc_only_commits_of_interest):
         #Fetch file package
         packages = helper_extract_modified_packages(file)
         if packages:
-            author = helper_commit_author(pr_commit)
+            author = helper_commit_author(commit)
             #Keep running count for commits made to the package
             if not packages[0] in self.packages_in_this_commit:
                 self.packages_in_this_commit.append(packages[0])
                 self.package_commits_made.setdefault(packages[0], {}).setdefault(author, 0)
                 self.package_commits_made[packages[0]][author] = self.package_commits_made[packages[0]][author] + 1
-            #if is rfm commit make waypoint data
-            if is_rfm_commit:
-                self.package_commits_made_rfm_waypoints[pr_commit.hash][file.new_path] = self.package_commits_made[packages[0]][author]
+            #if is commit make waypoint data
+            if is_commit_of_interest or not calc_only_commits_of_interest:
+                self.package_commits_made_coi_waypoints[commit.hash][file.new_path] = self.package_commits_made[packages[0]][author]
 
     #Called to fetch the metric value for current commit
-    def get_metric(self, prev_rfm_commit, cur_rfm_commit, pr_commit):
-        return self.package_commits_made_rfm_waypoints.get(pr_commit.hash, None)
+    def get_metric(self, commit_hash):
+        return self.package_commits_made_coi_waypoints.get(commit_hash, None)

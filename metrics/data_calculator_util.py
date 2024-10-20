@@ -1,32 +1,10 @@
 import re
-from os import path
-
-#Summs metrics into one number
-def helper_sum_to_commit_level(metric):
-    return sum([m["metric"] for m in metric])
-
-#Sums the given data per given file
-def helper_sum_metric_per_file(files, data):
-    metric = []
-    for file in files:
-        if file in data.keys():
-            metric.append({"file": file, "metric": sum(data[file])})
-    return metric
-
-#Per file returns metric normalized by the total data
-def helper_normalized_metric_per_file(cur_data, total_data):
-    norm_metric = []
-    for cur in cur_data:
-        for total in total_data:
-            #We have files and they match
-            if cur["file"] and total["file"] and path.normpath(cur["file"]) == path.normpath(total["file"]):
-                data = {"file": cur["file"], "metric": 0}
-                #We have data, dont divide by 0
-                if total["metric"] and total["metric"] > 0:
-                    data["metric"] = cur["metric"] / total["metric"]
-                norm_metric.append(data)
-                break
-    return norm_metric
+import os
+import json
+import stat
+import shutil
+import subprocess
+from pathlib import Path
 
 #Calculates metric values for the given files from the given data
 def helper_make_waypoint_per_file_neigbours(data, files, waypoint_metric_func):
@@ -80,28 +58,80 @@ def helper_extract_modified_packages(file):
         #return unique package names
     return list(set(potential_packages))
 
-#Returns the largest contributor to the given file
-def helper_get_largest_contributor_for_file(data, file):
-    largest_contributor = {"author": "",  "lines": 0}
-    #Find out the largest contributor
-    for author in data[file]:
-        if data[file][author] > largest_contributor["lines"]:
-            largest_contributor = {"author": author, "lines": data[file][author]}
-    return largest_contributor
-
-#Returns name of the author that is highest commiter of the file based on the given data
-def helper_get_highest_commiter_of_file(data, file):
-    highest_commiter = {"author": "", "commits":0}
-    for author in data[file]:
-        commits_authored = sum(data[file][author])
-        if commits_authored > highest_commiter["commits"]:
-            highest_commiter = {"author":author, "commits": commits_authored}
-    return highest_commiter
-
-#Gets paths of modified files in list form
-def helper_list_commit_files(pr_commit):
-    return [f.new_path for f in pr_commit.modified_files]
-
 #Gets author of the commit
 def helper_commit_author(pr_commit):
     return pr_commit.author.email.strip()
+
+#Gets paths of modified files in list form
+def helper_list_commit_files(pr_commit):
+    return [f.new_path for f in pr_commit.modified_files if f.new_path]
+
+#Output to console
+def helper_print(*args):
+    print(*args)
+
+#turns relative path to absolute path relative to the .py file location
+def relative_to_absolute(path, file_path):
+    return str(Path(file_path).parent) + "\\" + path
+
+#read a json file
+def helper_read_json(path):
+    data = {}
+    with open(path, "r") as file:
+        data = json.load(file)
+    return data
+
+#Writes json to file
+def helper_write_json(path, data):
+    with open(path, "w+") as file:
+        json.dump(data, file)
+
+#Writes a json file to communicate with the external tool scripts
+def helper_write_external_instructions(path, respository, branch, commits_of_interest, analyze_only_commits_of_interest, tool_max_workers):
+    helper_write_json(path, {
+            "repository": respository,
+            "branch": branch,
+            "COI": commits_of_interest,
+            "analyze_only_commits_of_interest": analyze_only_commits_of_interest,
+            "max_workers": tool_max_workers
+        }
+    )
+
+#Starts the external tool script for the given tool
+def helper_start_external_tool_process(path):
+    tool_path = Path(path)
+    if tool_path.is_file():
+        return subprocess.Popen(
+            ["python", os.path.abspath(path)], 
+            stdin = subprocess.DEVNULL, stdout = subprocess.DEVNULL, stderr = subprocess.DEVNULL, shell=True #No external input
+        )
+    return None
+
+#Copies git from source to target
+def helper_copy_git(source, target):
+    os.makedirs(target, exist_ok=True)
+    new_path = target+"\\"+os.path.basename(source)
+    shutil.copytree(source, new_path)
+    return new_path
+
+#Returns if folder exists
+def helper_path_exists(path):
+    return os.path.exists(path)
+
+#Removes folder at given path
+def helper_remove_folder(path):
+    if helper_path_exists(path):
+        #Based on https://stackoverflow.com/questions/2656322/shutil-rmtree-fails-on-windows-with-access-is-denied#answer-2656408
+        for root, dirs, files in os.walk(path, topdown=False):
+            for name in files:
+                filename = os.path.join(root, name)
+                os.chmod(filename, stat.S_IWUSR)
+                os.remove(filename)
+            for name in dirs:
+                os.rmdir(os.path.join(root, name))
+        os.rmdir(path)
+
+#Deletes file
+def helper_remove_file(path):
+    if helper_path_exists(path):
+        os.remove(path)

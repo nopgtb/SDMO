@@ -7,14 +7,14 @@ from pathlib import PurePath
 class Data_Provider_Path_Statistics(Data_Provider_Interface):
 
     #Called once per commit, excludes current commit data (pre pre_calc_per_file call)
-    def pre_calc_per_commit_exlusive(self, pr_commit, is_rfm_commit, rfm_commit):
+    def pre_calc_per_commit_exlusive(self, commit, is_commit_of_interest, calc_only_commits_of_interest):
         self.folders_involved = []
-        self.path_data[pr_commit.hash] = {"directory_count":0, "file_count":0}
+        self.path_data[commit.hash] = {"directory_count":0, "file_count":0}
 
     #Called once per file in a commit
-    def pre_calc_per_file(self, file, pr_commit, is_rfm_commit, rfm_commit):
+    def pre_calc_per_file(self, file, commit, is_commit_of_interest, calc_only_commits_of_interest):
         #Files modified in commit
-        self.path_data[pr_commit.hash]["file_count"] = self.path_data[pr_commit.hash]["file_count"] + 1 
+        self.path_data[commit.hash]["file_count"] = self.path_data[commit.hash]["file_count"] + 1 
         #Extract folders from files path
         if file.new_path:
            for part in PurePath(file.new_path).parts:
@@ -23,9 +23,9 @@ class Data_Provider_Path_Statistics(Data_Provider_Interface):
                     self.folders_involved.append(part)
 
     #Called once per commit, includes current commit data (post pre_calc_per_file call)
-    def pre_calc_per_commit_inclusive(self, pr_commit, is_rfm_commit, rfm_commit):
+    def pre_calc_per_commit_inclusive(self, commit, is_commit_of_interest, calc_only_commits_of_interest):
         #How many directories were used in this commit
-        self.path_data[pr_commit.hash]["directory_count"] = len(list(set(self.folders_involved)))
+        self.path_data[commit.hash]["directory_count"] = len(list(set(self.folders_involved)))
 
     #Initialize and Reset the data
     def reset_data(self):

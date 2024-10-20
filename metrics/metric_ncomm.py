@@ -1,6 +1,6 @@
 from metrics.metric_interface import Metric_Interface
 from metrics.data_calculator_util import *
-from metrics.data_provider.data_provider_commits_from_last_rfmc import Data_Provider_Commits_From_Last_Rfmc
+from metrics.data_provider.data_provider_commits_per_file_from_last_coi import Data_Provider_Commits_Per_File_From_Last_COI
 
 #NCOMM
 #The cumulative number of commits made to a file up to the considered commit starting from the previous refactoring commit, in
@@ -11,32 +11,33 @@ class Metric_NCOMM(Metric_Interface):
     #Store the repo
     def __init__(self, repository):
         super().__init__(repository)
-        self.data_provider = Data_Provider_Commits_From_Last_Rfmc(repository)
+        self.data_provider = Data_Provider_Commits_Per_File_From_Last_COI(repository)
         self.commit_per_file_neighbours_waypoints = {}
 
     #Data providers for the metric
     def get_data_providers(self):
         return [self.data_provider]
 
+    #Returns name of the metric as str
+    def get_metric_name(self):
+        return "NCOMM"
+    
+    #Returns at what level was the metric collected at
+    def get_collection_level(self):
+        return "file"
+
     #Called once per commit, includes current commit data (post pre_calc_per_file call)
-    def pre_calc_per_commit_inclusive(self, pr_commit, is_rfm_commit, rfm_commit):
-        if is_rfm_commit:
+    def pre_calc_per_commit_inclusive(self, commit, is_commit_of_interest, calc_only_commits_of_interest):
+        if is_commit_of_interest or not calc_only_commits_of_interest:
             metric_data = self.data_provider.get_data()
             if metric_data:
-                #Make a waypoint for this rfm_commit. per rfm_file, sum its neighbours commits
-                self.commit_per_file_neighbours_waypoints[pr_commit.hash] = helper_make_waypoint_per_file_neigbours(
+                #Make a waypoint for this commit. per file, sum its neighbours commits
+                self.commit_per_file_neighbours_waypoints[commit.hash] = helper_make_waypoint_per_file_neigbours(
                     metric_data, 
-                    rfm_commit["rfm_data"]["refactored_files"],
+                    helper_list_commit_files(commit),
                     lambda data: sum(data)
                 )
 
     #Called to fetch the metric value for current commit
-    def get_metric(self, prev_rfm_commit, cur_rfm_commit, pr_commit):
-        #NCOMM waypoint set for current_commit
-        if cur_rfm_commit["commit_hash"] in self.commit_per_file_neighbours_waypoints.keys():
-            return self.commit_per_file_neighbours_waypoints[cur_rfm_commit["commit_hash"]]
-        return 0
-    
-    #Returns at what level was the metric collected at
-    def get_collection_level():
-        return "file"
+    def get_metric(self, commit_hash):
+        return self.commit_per_file_neighbours_waypoints.get(commit_hash, 0)

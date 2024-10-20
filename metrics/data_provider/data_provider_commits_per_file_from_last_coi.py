@@ -3,10 +3,10 @@ from pydriller import ModificationType
 
 #Metrics rely on common data. Instead of each metric calculating it on its own
 #data provider will provide it from single source making it available for all metrics
-class Data_Provider_Commits_From_Last_Rfmc(Data_Provider_Interface):
+class Data_Provider_Commits_Per_File_From_Last_COI(Data_Provider_Interface):
 
     #Called once per file in a commit
-    def pre_calc_per_file(self, file, pr_commit, is_rfm_commit, rfm_commit):
+    def pre_calc_per_file(self, file, commit, is_commit_of_interest, calc_only_commits_of_interest):
         #File name changed in this commit
         if file.change_type == ModificationType.RENAME:
             #Reference the previous path for continuity
@@ -17,9 +17,9 @@ class Data_Provider_Commits_From_Last_Rfmc(Data_Provider_Interface):
     #If the calculator needs to reset calculations
     #at somepoint this is where to do it
     #its called last after pre_calc_per_* functions
-    def pre_calc_check_for_reset(self, pr_commit, is_rfm_commit, rfm_commit):
-        #Reset the data if rfm commit
-        if is_rfm_commit:
+    def pre_calc_check_for_reset(self, commit, is_commit_of_interest, calc_only_commits_of_interest):
+        #Reset the data if commit of interest
+        if is_commit_of_interest:
             self.reset_data()
     
     #Initialize and Reset the data

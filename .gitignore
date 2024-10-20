@@ -1,10 +1,22 @@
 # ignore ALL .csv files
 *.csv
 #ignore all sub folders
-*/ 
+*__pycache__
+#pyc files
+*.pyc
+#java files
+*.java
+#jar files
+*.jar
 #ignore zip files
 *.zip
 #ignore json files
 *.json
 #Compiled py files
 *.pyc
+#script folders
+*fetched_git*
+*RefactoringMiner*
+*gradle*
+#temp folders
+*ck_temp*

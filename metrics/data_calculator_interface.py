@@ -2,15 +2,15 @@
 class Data_Calculator_Interface(object):
 
     #Called once per commit, excludes current commit data (pre pre_calc_per_file call)
-    def pre_calc_per_commit_exlusive(self, pr_commit, is_rfm_commit, rfm_commit):
+    def pre_calc_per_commit_exlusive(self, commit, is_commit_of_interest, calc_only_commits_of_interest):
         pass
 
     #Called once per file in a commit
-    def pre_calc_per_file(self, file, pr_commit, is_rfm_commit, rfm_commit):
+    def pre_calc_per_file(self, file, commit, is_commit_of_interest, calc_only_commits_of_interest):
         pass
 
     #Called once per commit, includes current commit data (post pre_calc_per_file call)
-    def pre_calc_per_commit_inclusive(self, pr_commit, is_rfm_commit, rfm_commit):
+    def pre_calc_per_commit_inclusive(self, commit, is_commit_of_interest, calc_only_commits_of_interest):
         pass
     
     #Called once per repository
@@ -18,7 +18,7 @@ class Data_Calculator_Interface(object):
         pass
 
     #Start a external proc for the data
-    def pre_calc_run_external(self):
+    def pre_calc_run_external(self, repository, branch, commits_of_interest, analyze_only_commits_of_interest):
         pass
 
     #Wait for the external proc to finish
@@ -29,7 +29,7 @@ class Data_Calculator_Interface(object):
     #If the calculator needs to reset calculations
     #at somepoint this is where to do it
     #its called last after pre_calc_per_* functions
-    def pre_calc_check_for_reset(self, commit, is_rfm_commit, rfm_commit):
+    def pre_calc_check_for_reset(self, commit, is_commit_of_interest, calc_only_commits_of_interest):
         pass
 
     #Reset calculator data

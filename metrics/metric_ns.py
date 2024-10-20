@@ -1,6 +1,5 @@
 from metrics.metric_interface import Metric_Interface
 from metrics.data_calculator_util import *
-from metrics.data_provider.data_provider_packages_modified import Data_Provider_Packages_Modified
 
 #What is considered a subsystem?
 #Packages
@@ -16,28 +15,51 @@ class Metric_NS(Metric_Interface):
         super().__init__(repository)
         #hash => num of subsystems modified
         self.subsystems_modified_per_commit = {}
-        self.data_provider = Data_Provider_Packages_Modified(repository)
+        #file => [packages_modified]
+        self.packages_modified_per_commit = {}
 
     #Data providers for the metric
     def get_data_providers(self):
-        return [self.data_provider]
+        return []
+    
+    #Returns name of the metric as str
+    def get_metric_name(self):
+        return "NS"
+    
+    #Returns at what level was the metric collected at
+    def get_collection_level(self):
+        return "commit"
+
+    #Called once per commit, excludes current commit data (pre pre_calc_per_file call)
+    def pre_calc_per_commit_exlusive(self, commit, is_commit_of_interest, calc_only_commits_of_interest):
+        self.packages_modified_per_commit = {}
+
+    #Called once per file in a commit
+    def pre_calc_per_file(self, file, commit, is_commit_of_interest, calc_only_commits_of_interest):
+        #Get Modified packages and append them to commit data
+        if is_commit_of_interest or not calc_only_commits_of_interest:
+            self.packages_modified_per_commit[file.new_path] = helper_extract_modified_packages(file)
+
+    #Number of packages modified in this commit
+    def count_packages_modified(self, pr_commit):
+        packages_present = []
+        if self.packages_modified_per_commit:
+            #for commit => for file => for [packages] if package
+            packages_present = [pn for file in self.packages_modified_per_commit for pn in self.packages_modified_per_commit[file] if pn]
+        #remove dubplicate entries
+        return len(list(set(packages_present)))
     
     #Count subsystems present in file
     def count_subsystems_modified(self, pr_commit):
-        subsystems_present = []
-        metric_data = self.data_provider.get_data()
-        if metric_data and pr_commit.hash in metric_data.keys():
-            #for commit => for file => for [packages] if package
-            subsystems_present = [pn for file in metric_data[pr_commit.hash] for pn in metric_data[pr_commit.hash][file] if pn]
-        #remove dubplicate entries
-        return len(list(set(subsystems_present)))
+        #For now just count the packages modified 
+        subsystems_present = self.count_packages_modified(pr_commit)
+        return subsystems_present
 
     #Called once per commit, includes current commit data (post pre_calc_per_file call)
-    def pre_calc_per_commit_inclusive(self, pr_commit, is_rfm_commit, rfm_commit):
-        self.subsystems_modified_per_commit[pr_commit.hash] = self.count_subsystems_modified(pr_commit)
+    def pre_calc_per_commit_inclusive(self, commit, is_commit_of_interest, calc_only_commits_of_interest):
+        if is_commit_of_interest or not calc_only_commits_of_interest:
+            self.subsystems_modified_per_commit[commit.hash] = self.count_subsystems_modified(commit)
 
     #Called to fetch the metric value for current commit
-    def get_metric(self, prev_rfm_commit, cur_rfm_commit, pr_commit):
-        if pr_commit.hash in self.subsystems_modified_per_commit.keys():
-            return self.subsystems_modified_per_commit[pr_commit.hash]
-        return 0
+    def get_metric(self, commit_hash):
+        return self.subsystems_modified_per_commit.get(commit_hash, 0)

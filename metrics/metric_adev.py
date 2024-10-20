@@ -1,6 +1,6 @@
 from metrics.metric_interface import Metric_Interface
 from metrics.data_calculator_util import *
-from metrics.data_provider.data_provider_contributions_from_last_rfmc import Data_Provider_Contributions_From_Last_Rfmc
+from metrics.data_provider.data_provider_lines_per_file_per_author_from_last_coi import Data_Provider_Lines_Per_File_Per_Author_From_Last_COI
 
 #ADEV
 #The number of developers who modified a given file up to the considered commit starting from previous refactoring commit
@@ -10,31 +10,35 @@ class Metric_ADEV(Metric_Interface):
     #Store the repo
     def __init__(self, repository):
         super().__init__(repository)
+        #commit => [num of devs mod file starting from coi]
         self.contributors_per_file_waypoints = {}
-        self.data_provider = Data_Provider_Contributions_From_Last_Rfmc(repository)
+        self.data_provider = Data_Provider_Lines_Per_File_Per_Author_From_Last_COI(repository)
 
     #Data providers for the metric
     def get_data_providers(self):
         return [self.data_provider]
     
+    #Returns name of the metric as str
+    def get_metric_name(self):
+        return "ADEV"
+    
+    #Returns at what level was the metric collected at
+    def get_collection_level(self):
+        return "commit"
+
     #Called once per commit, excludes current commit data (pre pre_calc_per_file call)
-    def pre_calc_per_commit_exlusive(self, pr_commit, is_rfm_commit, rfm_commit):
-        if is_rfm_commit:
-            self.contributors_per_file_waypoints[pr_commit.hash] = []
+    def pre_calc_per_commit_exlusive(self, commit, is_commit_of_interest, calc_only_commits_of_interest):
+        if is_commit_of_interest or not calc_only_commits_of_interest:
+            self.contributors_per_file_waypoints[commit.hash] = []
 
     #Called once per file in a commit
-    def pre_calc_per_file(self, file, pr_commit, is_rfm_commit, rfm_commit):
+    def pre_calc_per_file(self, file, commit, is_commit_of_interest, calc_only_commits_of_interest):
         metric_data = self.data_provider.get_data()
-        #Make waypoint for rfm commit files
-        if is_rfm_commit and metric_data and file.new_path in metric_data.keys():
-            self.contributors_per_file_waypoints[pr_commit.hash].append(
-                {
-                    "file": file.new_path,
-                    "metric": len(metric_data[file.new_path])
-                }
-            )
+        #Make waypoint for commit files
+        if (is_commit_of_interest or not calc_only_commits_of_interest) and metric_data and file.new_path in metric_data.keys():
+            self.contributors_per_file_waypoints[commit.hash].append(len(metric_data[file.new_path]))
 
     #Called to fetch the metric value for current commit
-    def get_metric(self, prev_rfm_commit, cur_rfm_commit, pr_commit):
+    def get_metric(self, commit_hash):
         #ADEV waypoint set for current_commit
-        return helper_sum_to_commit_level(self.contributors_per_file_waypoints.get(pr_commit.hash, []))
+        return sum(self.contributors_per_file_waypoints.get(commit_hash, []))

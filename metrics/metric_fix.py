@@ -16,15 +16,24 @@ class Metric_FIX(Metric_Interface):
     def get_data_providers(self):
         return []
 
+    #Returns name of the metric as str
+    def get_metric_name(self):
+        return "FIX"
+    
+    #Returns at what level was the metric collected at
+    def get_collection_level(self):
+        return "commit"
+
     #Called once per file in a commit
-    def pre_calc_per_file(self, file, pr_commit, is_rfm_commit, rfm_commit):
-        self.jira_tasked[pr_commit.hash] = False
-        if pr_commit.msg:
-            #Extract jira ticket in form of CAPITALLETTERPROJECTID-123123
-            packages_modified = re.findall(r'\b([A-Z][A-Z0-9]+-\d+)\b', pr_commit.msg)
-            if packages_modified:
-                self.jira_tasked[pr_commit.hash] = True
+    def pre_calc_per_file(self, file, commit, is_commit_of_interest, calc_only_commits_of_interest):
+        if is_commit_of_interest or not calc_only_commits_of_interest:
+            self.jira_tasked[commit.hash] = False
+            if commit.msg:
+                #Extract jira ticket in form of CAPITALLETTERPROJECTID-123123
+                packages_modified = re.findall(r'\b([A-Z][A-Z0-9]+-\d+)\b', commit.msg)
+                if packages_modified:
+                    self.jira_tasked[commit.hash] = True
 
     #Called to fetch the metric value for current commit
-    def get_metric(self, prev_rfm_commit, cur_rfm_commit, pr_commit):
-        return self.jira_tasked.get(pr_commit.hash, False)
+    def get_metric(self, commit_hash):
+        return self.jira_tasked.get(commit_hash, False)

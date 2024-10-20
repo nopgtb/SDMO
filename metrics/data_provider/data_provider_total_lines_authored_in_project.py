@@ -6,7 +6,7 @@ from pydriller import ModificationType
 class Data_Provider_Total_Lines_Authored_In_Project(Data_Provider_Interface):
 
     #Called once per file in a commit
-    def pre_calc_per_file(self, file, pr_commit, is_rfm_commit, rfm_commit):
+    def pre_calc_per_file(self, file, commit, is_commit_of_interest, calc_only_commits_of_interest):
         self.lines_authored_in_project = self.lines_authored_in_project + (file.added_lines + file.deleted_lines)
 
     #Initialize and Reset the data

@@ -15,9 +15,17 @@ class Metric_ND(Metric_Interface):
     def get_data_providers(self):
         return [self.data_provider]
 
+    #Returns name of the metric as str
+    def get_metric_name(self):
+        return "ND"
+    
+    #Returns at what level was the metric collected at
+    def get_collection_level(self):
+        return "commit"
+
     #Called to fetch the metric value for current commit
-    def get_metric(self, prev_rfm_commit, cur_rfm_commit, pr_commit):
+    def get_metric(self, commit_hash):
         metric_data = self.data_provider.get_data()
-        if metric_data and pr_commit.hash in metric_data.keys():
-            return metric_data[pr_commit.hash]["directory_count"]
+        if metric_data and commit_hash in metric_data.keys():
+            return metric_data[commit_hash]["directory_count"]
         return 0

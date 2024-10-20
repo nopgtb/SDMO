@@ -18,23 +18,31 @@ class Metric_CEXP(Metric_Interface):
     def get_data_providers(self):
         return [self.data_provider]
     
+    #Returns name of the metric as str
+    def get_metric_name(self):
+        return "CEXP"
+    
+    #Returns at what level was the metric collected at
+    def get_collection_level(self):
+        return "commit"
+    
     #Called once per commit, excludes current commit data (pre pre_calc_per_file call)
-    def pre_calc_per_commit_exlusive(self, pr_commit, is_rfm_commit, rfm_commit):
+    def pre_calc_per_commit_exlusive(self, commit, is_commit_of_interest, calc_only_commits_of_interest):
         self.commits_made_by_author = []
 
     #Called once per file in a commit
-    def pre_calc_per_file(self, file, pr_commit, is_rfm_commit, rfm_commit):
+    def pre_calc_per_file(self, file, commit, is_commit_of_interest, calc_only_commits_of_interest):
         metric_data = self.data_provider.get_data()
-        author = helper_commit_author(pr_commit)
-        #rfm commit and we have data for file and author
-        if is_rfm_commit and metric_data and file.new_path in metric_data.keys() and author in metric_data[file.new_path].keys():
-            self.commits_made_by_author.append(sum(metric_data[file.new_path][author]))
+        author = helper_commit_author(commit)
+        #commit and we have data for file and author
+        if (is_commit_of_interest or not calc_only_commits_of_interest) and metric_data and file.new_path in metric_data.keys() and author in metric_data[file.new_path].keys():
+            self.commits_made_by_author.append(metric_data[file.new_path][author])
 
     #Called once per commit, includes current commit data (post pre_calc_per_file call)
-    def pre_calc_per_commit_inclusive(self, pr_commit, is_rfm_commit, rfm_commit):
-        if is_rfm_commit:
-            self.commits_made_by_author_on_files[pr_commit.hash] = sum(self.commits_made_by_author)
+    def pre_calc_per_commit_inclusive(self, commit, is_commit_of_interest, calc_only_commits_of_interest):
+        if is_commit_of_interest or not calc_only_commits_of_interest:
+            self.commits_made_by_author_on_files[commit.hash] = sum(self.commits_made_by_author)
 
     #Called to fetch the metric value for current commit
-    def get_metric(self, prev_rfm_commit, cur_rfm_commit, pr_commit):
-        return self.commits_made_by_author_on_files.get(pr_commit.hash, 0)
+    def get_metric(self, commit_hash):
+        return self.commits_made_by_author_on_files.get(commit_hash, 0)

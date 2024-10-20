@@ -1,9 +1,7 @@
 from metrics.metric_interface import Metric_Interface
 from metrics.data_calculator_util import *
-from metrics.data_provider.data_provider_contributions_per_author import Data_Provider_Contributions_Per_Author
 from metrics.data_provider.data_provider_total_lines_authored_in_project import Data_Provider_Total_Lines_Authored_In_Project
 
-#per rfm commit
 #   - Calculate exp of all devs in project at the time
 #       - percentage of authered lines in project
 #   - Calculate geometric mean using the exps
@@ -18,22 +16,35 @@ class Metric_EXP(Metric_Interface):
         super().__init__(repository)
         #Commit => geometric_mean of exp
         self.geometric_mean_of_exp = {}
-        self.data_provider_author_contributions = Data_Provider_Contributions_Per_Author(repository)
+        #author => lines contributed
+        self.lines_per_author = {}
         self.data_provider_tla_in_project = Data_Provider_Total_Lines_Authored_In_Project(repository)
 
     #Data providers for the metric
     def get_data_providers(self):
-        return [self.data_provider_author_contributions, self.data_provider_tla_in_project]
+        return [self.data_provider_tla_in_project]
+
+    #Returns name of the metric as str
+    def get_metric_name(self):
+        return "EXP"
+    
+    #Returns at what level was the metric collected at
+    def get_collection_level(self):
+        return "author"
+
+    #Called once per file in a commit
+    def pre_calc_per_file(self, file, commit, is_commit_of_interest, calc_only_commits_of_interest):
+        author = helper_commit_author(commit)
+        self.lines_per_author[author] = self.lines_per_author.get(author, 0) + file.added_lines + file.deleted_lines
 
     #Called once per commit, includes current commit data (post pre_calc_per_file call)
-    def pre_calc_per_commit_inclusive(self, pr_commit, is_rfm_commit, rfm_commit):
-        author_contrib_data = self.data_provider_author_contributions.get_data()
+    def pre_calc_per_commit_inclusive(self, commit, is_commit_of_interest, calc_only_commits_of_interest):
         tla_in_project = self.data_provider_tla_in_project.get_data()
-        if author_contrib_data and tla_in_project:
+        if tla_in_project:
             #Calculate percentages of contribution per author
             author_contrib_in_percentage = {}
-            for author in author_contrib_data:
-                author_contrib_in_percentage[author] = (author_contrib_data[author] / tla_in_project)
+            for author in self.lines_per_author:
+                author_contrib_in_percentage[author] = (self.lines_per_author[author] / tla_in_project)
             #Calculate inner product
             inner_product = 1
             for author in author_contrib_in_percentage:
@@ -41,15 +52,9 @@ class Metric_EXP(Metric_Interface):
             #Calculate exponent 1/num of authors
             exponent = 1/len(author_contrib_in_percentage)
             #Raise the inner product to the exponent and subtract 1
-            self.geometric_mean_of_exp[pr_commit.hash] = (inner_product ** exponent) - 1
+            self.geometric_mean_of_exp[commit.hash] = (inner_product ** exponent) - 1
 
     #Called to fetch the metric value for current commit
-    def get_metric(self, prev_rfm_commit, cur_rfm_commit, pr_commit):
+    def get_metric(self, commit_hash):
         #EXP waypoint set for current_commit
-        if cur_rfm_commit["commit_hash"] in self.geometric_mean_of_exp.keys():
-            return self.geometric_mean_of_exp[cur_rfm_commit["commit_hash"]]
-        return 0
-    
-    #Returns at what level was the metric collected at
-    def get_collection_level():
-        return "author"
+        return self.geometric_mean_of_exp.get(commit_hash, 0)
