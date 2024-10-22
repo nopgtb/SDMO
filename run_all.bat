@@ -7,3 +7,5 @@ echo Analyzing
 python analyze_refactor_miner_reports.py
 echo Calculating metrics
 python calculate_metrics.py
+echo Graphing metrics
+python metric_visualizer.py

@@ -73,29 +73,33 @@ metrics_table = [
     metrics.Metric_NOSI(),
 ]
 
-fig_folder = relative_to_absolute("metric_figs")
-if makedirs_helper(fig_folder):
-    #Read index
-    repositories = read_csv(relative_to_absolute("part_2_submission_index.csv"), ",", {"source_git":0, "local_path":1, "mining_report":2, "commit_messages":3, "commit_diffs":4, "metric_report": 5})
-    #Load metric datas
-    metric_reports = {}
-    for repository in repositories:
-        metric_reports[get_repo_name(repository["source_git"])] = read_json(repository["metric_report"])
+input_file = relative_to_absolute("part_2_submission_index.json")
+if file_exists(input_file):
+    fig_folder = relative_to_absolute("metric_figs")
+    if makedirs_helper(fig_folder):
+        #Read index
+        repositories = read_json(input_file)
+        #Load metric datas
+        metric_reports = {}
+        for repository in repositories:
+            metric_reports[get_repo_name(repository["source_git"])] = read_json(repository["metric_report"])
 
-    for metric in metrics_table:
-        #Plug all the data for the metric accross projects
-        metric_dataframes = []
-        for repo_name in metric_reports:
-            df = plug_dataframe(repo_name, metric_reports[repo_name], metric)
-            if not df.empty :
-                metric_dataframes.append(df)
-        #combine them into one df
-        if len(metric_dataframes) > 0:
-            combined_dataframe = pandas.concat(metric_dataframes)
-            #visualize the frame
-            fig = visualize_metric(combined_dataframe, metric)
-            fig_filename = fig_folder + "\\" + metric.get_metric_name()
-            store_fig_html(fig_filename + ".html", fig)
-            store_fig_image(fig_filename + ".png", fig)
+        for metric in metrics_table:
+            #Plug all the data for the metric accross projects
+            metric_dataframes = []
+            for repo_name in metric_reports:
+                df = plug_dataframe(repo_name, metric_reports[repo_name], metric)
+                if not df.empty :
+                    metric_dataframes.append(df)
+            #combine them into one df
+            if len(metric_dataframes) > 0:
+                combined_dataframe = pandas.concat(metric_dataframes)
+                #visualize the frame
+                fig = visualize_metric(combined_dataframe, metric)
+                fig_filename = fig_folder + "\\" + metric.get_metric_name()
+                store_fig_html(fig_filename + ".html", fig)
+                store_fig_image(fig_filename + ".png", fig)
+else:
+    print("Did not find input file: ", input_file)
     
         

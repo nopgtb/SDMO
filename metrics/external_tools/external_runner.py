@@ -146,9 +146,13 @@ if __name__ == "__main__":
             threading.Thread(target=worker, daemon=True).start()
         #Run trough all the commits of the git and push them to the worker threads
         for commit in Repository(tool_instructions["repository"], only_in_branch=tool_instructions["branch"]).traverse_commits():
-            #If we are a commit of interest or analyse all commits
-            if (tool_instructions["analyze_only_commits_of_interest"] and commit.hash in tool_instructions["COI"]) or not tool_instructions["analyze_only_commits_of_interest"]:
-                tool_queue.put({"hash":commit.hash,"files":{f.filename:f.source_code for f in commit.modified_files}})
+            #Git can be weird
+            try:
+                #If we are a commit of interest or analyse all commits
+                if (tool_instructions["analyze_only_commits_of_interest"] and commit.hash in tool_instructions["COI"]) or not tool_instructions["analyze_only_commits_of_interest"]:
+                    tool_queue.put({"hash":commit.hash,"files":{f.filename:f.source_code for f in commit.modified_files}})
+            except:
+                continue
         tool_queue.join()
         #Write results to output
         for service in tool_instructions["service_needs"]:

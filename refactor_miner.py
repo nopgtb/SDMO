@@ -18,18 +18,22 @@
 import os
 import time
 import subprocess
-from common import relative_to_absolute, read_csv, write_csv, makedirs_helper, get_repo_name, file_exists, write_json, get_timestamp, get_main_branch
+from common import relative_to_absolute, read_json, write_json, makedirs_helper, get_repo_name, file_exists, write_json, get_timestamp, get_main_branch
 
-#try suppress output
-devnull = open(os.devnull, "w")
+
 
 #Starts the subprocess for mining and returns the proc handle
-def start_refactoring_miner_proc(git_path, report_path):
-    #Change this to reflect your placement of the miner
-    refactoring_miner_path = relative_to_absolute("RefactoringMiner-3.0.7\\bin\\RefactoringMiner.bat")
+def start_refactoring_miner_proc(git_path, report_path, tool_path, branch = None):
+    args = []
+    #Do we have branch to pass to the tool?
+    if branch:
+        args = [tool_path, "-a",git_path, branch,  "-json", report_path]
+    else:
+        #No branch given
+        args = [tool_path, "-a",git_path, "-json", report_path]
     return subprocess.Popen(
-        [refactoring_miner_path, "-a",git_path, get_main_branch(git_path),  "-json", report_path], 
-        stdin = devnull, stdout = devnull, stderr=devnull, shell=False
+        args, 
+        stdin = subprocess.DEVNULL, stdout = subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=False
     )
  
 #If there is a report.json assume this repo is mined
@@ -37,7 +41,7 @@ def is_mined(path):
     return file_exists(path)
 
 #Starts proc using refactoringminer
-def start_refactoring_miner_on_repo(repo, reports_path):
+def start_refactoring_miner_on_repo(repo, reports_path, tool_path, branch):
     proc = {"p_object":None, "repo": repo}
     repo["mining_report"] = "MINING_FAILED"
     #Is it valid local repo?
@@ -47,7 +51,7 @@ def start_refactoring_miner_on_repo(repo, reports_path):
         #If not mined make a proc
         if not is_mined(report_file):
             if(makedirs_helper(report_folder)):
-                proc = {"p_object": start_refactoring_miner_proc(repo["local_path"], report_file),"repo": repo}
+                proc = {"p_object": start_refactoring_miner_proc(repo["local_path"], report_file, tool_path, branch),"repo": repo}
                 repo["mining_report"] = report_file
         else:
             repo["mining_report"] = report_file
@@ -60,52 +64,71 @@ def check_procc_for_error(p, repo):
         #mining might have crashed, make a note of it
         write_json(relative_to_absolute("mining_error.json"), {"offening_repo": repo["source_git"]})
 
-#Read fetch index
-local_ref_mining_targets = read_csv(relative_to_absolute("fetch_index.csv"), ",", {"source_git":0, "local_path":1})
 
-#Create folder for the repots
-reports_path = relative_to_absolute("rm_reports")
-if(makedirs_helper(reports_path)):
-    result_index = []
-    running_proc = []
-    next_mining_target = 0
-    #change this depending on how mutch memory and cpu you have
-    max_sim_mining_procs = 2
-    print(get_timestamp() + ": Starting miner")
-    #Run while we have targets to mine and mining procs running
-    while next_mining_target < len(local_ref_mining_targets) or len(running_proc) > 0:
-        #Check if we need to start new mining procs
-        while next_mining_target < len(local_ref_mining_targets) and len(running_proc) < max_sim_mining_procs:
-            print(
-                "\n" + get_timestamp() + ": Started mining on ", local_ref_mining_targets[next_mining_target]["source_git"],
-                ", repo " + str((next_mining_target+1)) + "/" + str(len(local_ref_mining_targets))
-            )
-            proc = start_refactoring_miner_on_repo(local_ref_mining_targets[next_mining_target], reports_path)
-            #Already mined repo
-            if not proc["p_object"]:
-                print("\n" + get_timestamp() + ": Ended mining on ", proc["repo"]["source_git"])
-                result_index.append(proc["repo"])
+
+#Change this to reflect your placement of the miner
+refactoring_miner_path = relative_to_absolute("RefactoringMiner\\bin\\RefactoringMiner.bat")
+input_file = relative_to_absolute("fetch_index.json")
+output_file = relative_to_absolute("mining_index.json")
+#Controls wheter all branches are mined or only main branch
+mine_only_main_branch = False
+
+if not file_exists(output_file):
+    #Is the tool where we need it to be?
+    if file_exists(refactoring_miner_path):
+        if file_exists(input_file):
+            #Read fetch index
+            local_ref_mining_targets = read_json(input_file)
+            #Create folder for the repots
+            reports_path = relative_to_absolute("rm_reports")
+            if(makedirs_helper(reports_path)):
+                result_index = []
+                running_proc = []
+                next_mining_target = 0
+                #change this depending on how mutch memory and cpu you have
+                max_sim_mining_procs = 2
+                print(get_timestamp() + ": Starting miner")
+                #Run while we have targets to mine and mining procs running
+                while next_mining_target < len(local_ref_mining_targets) or len(running_proc) > 0:
+                    #Check if we need to start new mining procs
+                    while next_mining_target < len(local_ref_mining_targets) and len(running_proc) < max_sim_mining_procs:
+                        print(
+                            "\n" + get_timestamp() + ": Started mining on ", local_ref_mining_targets[next_mining_target]["source_git"],
+                            ", repo " + str((next_mining_target+1)) + "/" + str(len(local_ref_mining_targets))
+                        )
+                        #If we want to mine only the main branch of the git
+                        branch = None
+                        if mine_only_main_branch:
+                            branch = get_main_branch(local_ref_mining_targets[next_mining_target]["local_path"])
+                        proc = start_refactoring_miner_on_repo(local_ref_mining_targets[next_mining_target], reports_path, refactoring_miner_path, branch)
+                        #Already mined repo
+                        if not proc["p_object"]:
+                            print("\n" + get_timestamp() + ": Ended mining on ", proc["repo"]["source_git"])
+                            result_index.append(proc["repo"])
+                        else:
+                            running_proc.append(proc)
+                        next_mining_target = next_mining_target + 1
+                    #Check status of running procs
+                    for proc_index, proc in reversed(list(enumerate(running_proc))):
+                        #https://docs.python.org/3/library/subprocess.html#subprocess.Popen.poll
+                        #None means we still running
+                        if not proc["p_object"].poll() == None:
+                            print("\n" + get_timestamp() + ": Ended mining on ", proc["repo"]["source_git"])
+                            check_procc_for_error(proc["p_object"], proc["repo"])
+                            result_index.append(proc["repo"])
+                            #Remove done proc
+                            running_proc.pop(proc_index)
+                    #Sleep 30 seconds, long running procs
+                    if len(running_proc) > 0:
+                        time.sleep(30)
+
+                #Write mining index for further processing
+                write_json(output_file, result_index)
             else:
-                running_proc.append(proc)
-            next_mining_target = next_mining_target + 1
-        #Check status of running procs
-        for proc_index, proc in reversed(list(enumerate(running_proc))):
-            #https://docs.python.org/3/library/subprocess.html#subprocess.Popen.poll
-            #None means we still running
-            if not proc["p_object"].poll() == None:
-                print("\n" + get_timestamp() + ": Ended mining on ", proc["repo"]["source_git"])
-                check_procc_for_error(proc["p_object"], proc["repo"])
-                result_index.append(proc["repo"])
-                #Remove done proc
-                running_proc.pop(proc_index)
-        #Sleep 30 seconds, long running procs
-        if len(running_proc) > 0:
-            time.sleep(30)
-
-    #Write mining index for further processing
-    #write_csv(relative_to_absolute("mining_index.csv"), [r for p in result_index for r in p], ",", {"source_git":0, "local_path":1, "mining_report":2})
-    write_csv(relative_to_absolute("mining_index.csv"), result_index, ",", {"source_git":0, "local_path":1, "mining_report":2})
+                print("Could not create folder. Cant proceed")
+        else:
+            print("Did not find input file: ", input_file)
+    else:
+        print("Could not find refactoringminer executable! Nothign will be mined! Expected path: ", refactoring_miner_path)
 else:
-    print("Could not create folder. Cant proceed")
-#Clean up
-devnull.close()
+    print("Found ", output_file, " skipping")

@@ -9,7 +9,7 @@
 
 import time
 from git import Repo  # pip install gitpython
-from common import relative_to_absolute, read_csv, write_csv, makedirs_helper, get_repo_name, file_exists
+from common import relative_to_absolute, read_csv, write_json, makedirs_helper, get_repo_name, file_exists
 
 #Fetches the given git project and stores it into target/name folder
 #name is decoded from the source
@@ -28,22 +28,29 @@ def fetch_git(source, target):
     return "FETCH_FAILED"
  
 #Source of data, modify to reflect the file you importing the gits from
-source_file = relative_to_absolute("source.csv")
-#Read sources
-sources = read_csv(source_file, ",", {"source_git":0})
-#create a folder to fetch to
-fetch_target = relative_to_absolute("fetched_git")
-if(makedirs_helper(fetch_target)):
-    #Start fetching gits
-    result_index = []
-    for i,source in enumerate(sources):
-        print("Fetching source: " + source["source_git"])
-        repo_local_path = fetch_git(source["source_git"], fetch_target)
-        result_index.append({"source_git": source["source_git"], "local_path": repo_local_path})
-        #sleep 30 seconds and dont spam
-        time.sleep(30)
-    #Write index for further processing
-    write_csv(relative_to_absolute("fetch_index.csv"), result_index, ",", {"source_git":0, "local_path":1})
-else:
-    print("Failed to create folder. Cant proceed")
+input_file = relative_to_absolute("source.csv")
+output_file = relative_to_absolute("fetch_index.json")
 
+if not file_exists(output_file):
+    if file_exists(input_file):
+        #Read sources
+        sources = read_csv(input_file, ",", {"source_git":0})
+        #create a folder to fetch to
+        fetch_target = relative_to_absolute("fetched_git")
+        if(makedirs_helper(fetch_target)):
+            #Start fetching gits
+            result_index = []
+            for i,source in enumerate(sources):
+                print("Fetching source: " + source["source_git"])
+                repo_local_path = fetch_git(source["source_git"], fetch_target)
+                result_index.append({"source_git": source["source_git"], "local_path": repo_local_path})
+                #sleep 30 seconds and dont spam
+                time.sleep(30)
+            #Write index for further processing
+            write_json(output_file, result_index)
+        else:
+            print("Failed to create folder. Cant proceed")
+    else:
+        print("Could not find input file: ", input_file)
+else:
+    print("Found ", output_file, " skipping")
