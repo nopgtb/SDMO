@@ -8,8 +8,8 @@ from pydriller import ModificationType
 class Metric_SEXP(Metric_Interface):
 
     #Store the repo
-    def __init__(self, repository):
-        super().__init__(repository)
+    def __init__(self):
+        super().__init__()
         #package => author => number of commits
         self.package_commits_made = {}
         self.package_commits_made_coi_waypoints = {}

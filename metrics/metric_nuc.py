@@ -7,12 +7,12 @@ from metrics.data_provider.data_provider_commits_per_file_per_author import Data
 class Metric_NUC(Metric_Interface):
 
     #Store the repo
-    def __init__(self, repository):
-        super().__init__(repository)
+    def __init__(self):
+        super().__init__()
         #Commit hash => number of times fiels in the commiit have been modified
         self.commit_files_modified_count = {}
         self.modification_times_in_commit = []
-        self.data_provider = Data_Provider_Commits_Per_File_Per_Author(repository)
+        self.data_provider = Data_Provider_Commits_Per_File_Per_Author()
 
     #Data providers for the metric
     def get_data_providers(self):

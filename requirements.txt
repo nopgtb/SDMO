@@ -2,3 +2,9 @@
 gitpython
 #Pydriller
 pydriller
+#Plotly
+plotly==5.24.1
+#for plotly.express
+pandas
+#for plotly.io, writing images
+kaleido

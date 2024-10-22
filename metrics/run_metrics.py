@@ -1,5 +1,6 @@
 import metrics
 from pydriller import Repository
+from metrics.data_provider.external_service_provider import External_Service_Provider
 
 #Creates metric calculators and runs them on the given repository
 #metrics_to_run - List of metric_* types to run
@@ -10,7 +11,7 @@ def run_metrics(metrics_to_run, repository, branch, commits_of_interest, analyze
     #Create metric calculators
     metric_calculators = {}
     for metric_to_run in metrics_to_run:
-        metric_calculators[metric_to_run] = metric_to_run(repository)
+        metric_calculators[metric_to_run] = metric_to_run()
     #Run precalculations on the metric calculators
     if not branch:
         branch = None
@@ -32,11 +33,15 @@ def get_data_providers(metrics):
 #Runs precalculations on the given metric calculators
 def run_metric_precalculations(repository, branch, commits_of_interest, metrics_calculators, analyze_only_commits_of_interest):
     #All calculators, providers first then metric calculators
-    data_calculators = get_data_providers(metrics_calculators) + [metrics_calculators[mc] for mc in metrics_calculators]
+    #Order of placement is relevant for order of executions (data_providers => external_service_provider => metrics)
+    data_calculators = get_data_providers(metrics_calculators) + [External_Service_Provider()] + [metrics_calculators[mc] for mc in metrics_calculators]
 
-    #Reset data, start tools and run repository pre_calcs
+    #Reset all collectors
     for calculator in data_calculators:
         calculator.reset_data()
+
+    #start tools and run repository pre_calcs
+    for calculator in data_calculators:
         calculator.pre_calc_run_external(repository, branch, commits_of_interest, analyze_only_commits_of_interest)
         calculator.pre_calc_per_repository()
 

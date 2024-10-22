@@ -87,13 +87,14 @@ def helper_write_json(path, data):
         json.dump(data, file)
 
 #Writes a json file to communicate with the external tool scripts
-def helper_write_external_instructions(path, respository, branch, commits_of_interest, analyze_only_commits_of_interest, tool_max_workers):
+def helper_write_external_instructions(path, respository, branch, commits_of_interest, analyze_only_commits_of_interest, tool_max_workers, service_needs):
     helper_write_json(path, {
             "repository": respository,
             "branch": branch,
             "COI": commits_of_interest,
             "analyze_only_commits_of_interest": analyze_only_commits_of_interest,
-            "max_workers": tool_max_workers
+            "max_workers": tool_max_workers,
+            "service_needs": service_needs
         }
     )
 

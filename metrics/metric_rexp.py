@@ -12,8 +12,8 @@ from pydriller import ModificationType
 class Metric_REXP(Metric_Interface):
 
     #Store the repo
-    def __init__(self, repository):
-        super().__init__(repository)
+    def __init__(self):
+        super().__init__()
         #file => date_str => author => num of commits
         self.commits_made = {}
         self.commits_made_coi_waypoints = {}

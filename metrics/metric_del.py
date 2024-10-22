@@ -7,8 +7,8 @@ from pydriller import ModificationType
 class Metric_DEL(Metric_Interface):
 
     #Store the repo
-    def __init__(self, repository):
-        super().__init__(repository)
+    def __init__(self):
+        super().__init__()
         #hash => file => [file norms]
         self.lines_deleted_waypoint = {}
         #File => [Num of lines added]

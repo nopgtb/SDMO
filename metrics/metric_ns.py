@@ -11,8 +11,8 @@ from metrics.data_calculator_util import *
 class Metric_NS(Metric_Interface):
 
     #Store the repo
-    def __init__(self, repository):
-        super().__init__(repository)
+    def __init__(self):
+        super().__init__()
         #hash => num of subsystems modified
         self.subsystems_modified_per_commit = {}
         #file => [packages_modified]

@@ -8,11 +8,11 @@ from metrics.data_provider.data_provider_lines_per_file_per_author_from_last_coi
 class Metric_ADEV(Metric_Interface):
 
     #Store the repo
-    def __init__(self, repository):
-        super().__init__(repository)
+    def __init__(self):
+        super().__init__()
         #commit => [num of devs mod file starting from coi]
         self.contributors_per_file_waypoints = {}
-        self.data_provider = Data_Provider_Lines_Per_File_Per_Author_From_Last_COI(repository)
+        self.data_provider = Data_Provider_Lines_Per_File_Per_Author_From_Last_COI()
 
     #Data providers for the metric
     def get_data_providers(self):

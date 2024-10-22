@@ -9,9 +9,9 @@ from metrics.data_provider.data_provider_commits_per_file_from_last_coi import D
 class Metric_NCOMM(Metric_Interface):
 
     #Store the repo
-    def __init__(self, repository):
-        super().__init__(repository)
-        self.data_provider = Data_Provider_Commits_Per_File_From_Last_COI(repository)
+    def __init__(self):
+        super().__init__()
+        self.data_provider = Data_Provider_Commits_Per_File_From_Last_COI()
         self.commit_per_file_neighbours_waypoints = {}
 
     #Data providers for the metric

@@ -7,8 +7,8 @@ import math
 class Metric_ENTROPY(Metric_Interface):
 
     #Store the repo
-    def __init__(self, repository):
-        super().__init__(repository)
+    def __init__(self):
+        super().__init__()
         #commit => {tlc, entropy, files=>{file => lines_changed}}
         self.commit_entropy_levels = {}
 

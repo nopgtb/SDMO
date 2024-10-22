@@ -7,8 +7,8 @@ from pydriller import ModificationType
 class Metric_AGE(Metric_Interface):
 
     #Store the repo
-    def __init__(self, repository):
-        super().__init__(repository)
+    def __init__(self):
+        super().__init__()
         #Commit hash => days on average since last change
         self.commit_average_mod_interval = {}
         #file => [datetime of commit]
@@ -41,9 +41,9 @@ class Metric_AGE(Metric_Interface):
         
         #Add data to the average calculation 
         if is_commit_of_interest or not calc_only_commits_of_interest:
-            if self.file_modification_age and file in self.file_modification_age.keys() and len(self.file_modification_age[file]) > 1:
+            if self.file_modification_age and file.new_path in self.file_modification_age.keys() and len(self.file_modification_age[file.new_path]) > 1:
                 #Calculate the time between current mod and last mod
-                self.mod_time_sep.append((self.file_modification_age[file][-1] - self.file_modification_age[file][len(self.file_modification_age[file])-2]).days)
+                self.mod_time_sep.append((self.file_modification_age[file.new_path][-1] - self.file_modification_age[file.new_path][len(self.file_modification_age[file.new_path])-2]).days)
         
     #Called once per commit, includes current commit data (post pre_calc_per_file call)
     def pre_calc_per_commit_inclusive(self, commit, is_commit_of_interest, calc_only_commits_of_interest):

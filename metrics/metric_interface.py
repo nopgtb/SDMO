@@ -2,9 +2,8 @@ from .data_calculator_interface import Data_Calculator_Interface
 #Abstract class for implementing metric calculations
 class Metric_Interface(Data_Calculator_Interface):
     #Store the repo
-    def __init__(self, repository):
-        self.repository = repository
-
+    def __init__(self):
+        pass
     #Called to fetch the metric value for current commit
     def get_metric(self, commit_hash):
         pass

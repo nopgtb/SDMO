@@ -4,12 +4,11 @@ from metrics.data_calculator_interface import Data_Calculator_Interface
 #Avoiding duplicated work
 class Data_Provider_Interface(Data_Calculator_Interface):
 
-    #Store the repo
-    def __init__(self, repository):
-        self.repository = repository
+    def __init__(self):
+        pass
 
     #All providers are singeltons. We want single provider for each type of data
-    def __new__(cls, repository):
+    def __new__(cls):
         if not hasattr(cls, 'instance'):
             cls.instance = super(Data_Provider_Interface, cls).__new__(cls)
             #initialize subclass data structure

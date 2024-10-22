@@ -1,18 +1,5 @@
 import metrics
 from common import *
-#https://github.com/mauricioaniche/ck/tree/master
-#Data provider => 
-    #Start process => External python script
-    # => Given commit hashes and 
-    #   => Extracts the files one by one at the commit
-    #       => Runs the tool on them
-    # => Writes json file with the given hashes
-# waits => loads json file reads variables for hashes
-# Metric.get_metric => gets the data provider and just uses it
-
-#name function for metrics
-#implement the run all bool
-#rename rfm to something like commits of interest
 
 #list for metric calculating functions
 metrics_table = [
@@ -94,5 +81,8 @@ if makedirs_helper(part_2_submission_folder):
         repository_rfm_metrics = get_metric_data(respository)
         #create repo submission folder and write metrics
         part_2_repo_folder = part_2_submission_folder + "/" + get_repo_name(respository["source_git"])
+        metric_report = part_2_repo_folder + "/rmetrics.json"
         if makedirs_helper(part_2_repo_folder):
-            write_json(part_2_repo_folder + "/rmetrics.json", repository_rfm_metrics)
+            write_json(metric_report, repository_rfm_metrics)
+            respository["metric_report"] = metric_report    
+    write_csv(relative_to_absolute("part_2_submission_index.csv"), repositories, ",", {"source_git":0, "local_path":1, "mining_report":2, "commit_messages":3, "commit_diffs":4, "metric_report": 5})

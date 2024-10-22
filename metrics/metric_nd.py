@@ -7,9 +7,9 @@ from metrics.data_provider.data_provider_path_statistics import Data_Provider_Pa
 class Metric_ND(Metric_Interface):
 
     #Store the repo
-    def __init__(self, repository):
-        super().__init__(repository)
-        self.data_provider = Data_Provider_Path_Statistics(repository)
+    def __init__(self):
+        super().__init__()
+        self.data_provider = Data_Provider_Path_Statistics()
 
     #Data providers for the metric
     def get_data_providers(self):

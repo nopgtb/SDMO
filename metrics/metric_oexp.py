@@ -16,13 +16,13 @@ from metrics.data_provider.data_provider_total_lines_authored_in_project import 
 class Metric_OEXP(Metric_Interface):
 
     #Store the repo
-    def __init__(self, repository):
-        super().__init__(repository)
+    def __init__(self):
+        super().__init__()
         #Commit => File =>  author, exp
         self.exprience_of_files_highest_commiter = {}
-        self.data_provider_commits = Data_Provider_Commits_Per_File_Per_Author(repository)
-        self.data_provider_contributions = Data_Provider_Lines_Per_File_Per_Author(repository)
-        self.data_provider_tla_in_project = Data_Provider_Total_Lines_Authored_In_Project(repository)
+        self.data_provider_commits = Data_Provider_Commits_Per_File_Per_Author()
+        self.data_provider_contributions = Data_Provider_Lines_Per_File_Per_Author()
+        self.data_provider_tla_in_project = Data_Provider_Total_Lines_Authored_In_Project()
 
     #Data providers for the metric
     def get_data_providers(self):

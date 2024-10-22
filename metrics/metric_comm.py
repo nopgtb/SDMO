@@ -8,11 +8,11 @@ from metrics.data_provider.data_provider_commits_per_file_from_last_coi import D
 class Metric_COMM(Metric_Interface):
 
     #Store the repo
-    def __init__(self, repository):
-        super().__init__(repository)
+    def __init__(self):
+        super().__init__()
         #commit => [commits made to the files from coi]
         self.commit_per_file_waypoints = {}
-        self.data_provider = Data_Provider_Commits_Per_File_From_Last_COI(repository)
+        self.data_provider = Data_Provider_Commits_Per_File_From_Last_COI()
 
     #Data providers for the metric
     def get_data_providers(self):

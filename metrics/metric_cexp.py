@@ -7,9 +7,9 @@ from metrics.data_provider.data_provider_commits_per_file_per_author import Data
 class Metric_CEXP(Metric_Interface):
 
     #Store the repo
-    def __init__(self, repository):
-        super().__init__(repository)
-        self.data_provider = Data_Provider_Commits_Per_File_Per_Author(repository)
+    def __init__(self):
+        super().__init__()
+        self.data_provider = Data_Provider_Commits_Per_File_Per_Author()
         #Hash => number of commits made on files by author
         self.commits_made_by_author_on_files = {}
         self.commits_made_by_author = []

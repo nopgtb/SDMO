@@ -7,8 +7,8 @@ from pydriller import ModificationType
 class Metric_ADD(Metric_Interface):
 
     #Store the repo
-    def __init__(self, repository):
-        super().__init__(repository)
+    def __init__(self):
+        super().__init__()
         #hash => file => [norms of the files]
         self.lines_added_waypoint = {}
         #File => Lines added

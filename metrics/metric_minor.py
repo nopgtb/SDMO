@@ -7,12 +7,12 @@ from metrics.data_provider.data_provider_lines_per_file_per_author import Data_P
 class Metric_MINOR(Metric_Interface):
 
     #Store the repo
-    def __init__(self, repository):
-        super().__init__(repository)
+    def __init__(self):
+        super().__init__()
         #commit => [num of contribs who give less than 5%]
         self.minor_authors_in_file_waypoint = {}
         self.minor_author_treshold = 0.05
-        self.data_provider = Data_Provider_Lines_Per_File_Per_Author(repository)
+        self.data_provider = Data_Provider_Lines_Per_File_Per_Author()
 
     #Data providers for the metric
     def get_data_providers(self):

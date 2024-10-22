@@ -6,8 +6,8 @@ from metrics.data_calculator_util import *
 class Metric_LD(Metric_Interface):
 
     #Store the repo
-    def __init__(self, repository):
-        super().__init__(repository)
+    def __init__(self):
+        super().__init__()
         #commit => lines_deleted
         self.lines_deleted = {}
 

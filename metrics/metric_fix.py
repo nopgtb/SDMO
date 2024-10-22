@@ -7,8 +7,8 @@ from metrics.data_calculator_util import *
 class Metric_FIX(Metric_Interface):
 
     #Store the repo
-    def __init__(self, repository):
-        super().__init__(repository)
+    def __init__(self):
+        super().__init__()
         #commit => bool
         self.jira_tasked = {}
 

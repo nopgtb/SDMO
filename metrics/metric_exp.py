@@ -12,13 +12,13 @@ from metrics.data_provider.data_provider_total_lines_authored_in_project import 
 class Metric_EXP(Metric_Interface):
 
     #Store the repo
-    def __init__(self, repository):
-        super().__init__(repository)
+    def __init__(self):
+        super().__init__()
         #Commit => geometric_mean of exp
         self.geometric_mean_of_exp = {}
         #author => lines contributed
         self.lines_per_author = {}
-        self.data_provider_tla_in_project = Data_Provider_Total_Lines_Authored_In_Project(repository)
+        self.data_provider_tla_in_project = Data_Provider_Total_Lines_Authored_In_Project()
 
     #Data providers for the metric
     def get_data_providers(self):

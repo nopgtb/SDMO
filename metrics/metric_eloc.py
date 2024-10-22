@@ -7,9 +7,9 @@ from metrics.data_provider.data_provider_external_ck import Data_Provider_Extern
 class Metric_ELOC(Metric_Interface):
 
     #Store the repo
-    def __init__(self, repository):
-        super().__init__(repository)
-        self.data_provider = Data_Provider_External_CK(repository)
+    def __init__(self):
+        super().__init__()
+        self.data_provider = Data_Provider_External_CK()
 
     #Data providers for the metric
     def get_data_providers(self):

@@ -7,9 +7,9 @@ from metrics.data_provider.data_provider_lines_per_file_per_author import Data_P
 class Metric_NDEV(Metric_Interface):
 
     #Store the repo
-    def __init__(self, repository):
-        super().__init__(repository)
-        self.data_provider = Data_Provider_Lines_Per_File_Per_Author(repository)
+    def __init__(self):
+        super().__init__()
+        self.data_provider = Data_Provider_Lines_Per_File_Per_Author()
         #commit hash => [num of devs]
         self.authors_per_commit = {}
 
