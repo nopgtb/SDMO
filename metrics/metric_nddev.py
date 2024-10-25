@@ -1,5 +1,5 @@
 from metrics.metric_interface import Metric_Interface
-from metrics.data_calculator_util import *
+from metrics.data_calculator_util import Data_Calculator_Util
 from metrics.data_provider.data_provider_lines_per_file_per_author import Data_Provider_Lines_Per_File_Per_Author
 
 #NDDEV
@@ -18,11 +18,13 @@ class Metric_NDDEV(Metric_Interface):
         return [self.data_provider]
     
     #Returns name of the metric as str
-    def get_metric_name(self):
+    @staticmethod
+    def get_metric_name():
         return "NDDEV"
     
     #Returns at what level was the metric collected at
-    def get_collection_level(self):
+    @staticmethod
+    def get_collection_level():
         return "file"
 
     #Called once per commit, includes current commit data (post pre_calc_per_file call)
@@ -31,9 +33,9 @@ class Metric_NDDEV(Metric_Interface):
             metric_data = self.data_provider.get_data()
             if metric_data:
                 #Make a waypoint for this commit. Number of "Distinct" contributors per files neighbours
-                self.contributors_per_files_neighbours_waypoints[commit.hash] = helper_make_waypoint_per_file_neigbours(
+                self.contributors_per_files_neighbours_waypoints[commit.hash] = Data_Calculator_Util.waypoint_per_file_neigbours(
                     metric_data,
-                    helper_list_commit_files(commit),
+                    Data_Calculator_Util.list_commit_files(commit),
                     lambda data: len(list(set(data.keys())))
                 )
 

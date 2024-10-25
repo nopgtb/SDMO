@@ -1,5 +1,5 @@
 from metrics.metric_interface import Metric_Interface
-from metrics.data_calculator_util import *
+from metrics.data_calculator_util import Data_Calculator_Util
 from metrics.data_provider.data_provider_lines_per_file_per_author import Data_Provider_Lines_Per_File_Per_Author
 
 #OWN
@@ -20,11 +20,13 @@ class Metric_OWN(Metric_Interface):
         return [self.data_provider]
 
     #Returns name of the metric as str
-    def get_metric_name(self):
+    @staticmethod
+    def get_metric_name():
         return "OWN"
     
     #Returns at what level was the metric collected at
-    def get_collection_level(self):
+    @staticmethod
+    def get_collection_level():
         return "commit"
 
     #Called once per commit, excludes current commit data (pre pre_calc_per_file call)
@@ -48,7 +50,7 @@ class Metric_OWN(Metric_Interface):
         metric_data = self.data_provider.get_data()
         #is refactorings commit
         if (is_commit_of_interest or not calc_only_commits_of_interest) and metric_data:
-            author = helper_commit_author(commit)
+            author = Data_Calculator_Util.get_commit_author(commit)
             largest_contributor = self.get_largest_contributor_for_file(metric_data, file.new_path)
             lines_contributed = file.added_lines + file.deleted_lines
             #Current author is the largest contributor

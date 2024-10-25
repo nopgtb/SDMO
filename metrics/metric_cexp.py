@@ -1,5 +1,5 @@
 from metrics.metric_interface import Metric_Interface
-from metrics.data_calculator_util import *
+from metrics.data_calculator_util import Data_Calculator_Util
 from metrics.data_provider.data_provider_commits_per_file_per_author import Data_Provider_Commits_Per_File_Per_Author
 
 #CEXP
@@ -19,11 +19,13 @@ class Metric_CEXP(Metric_Interface):
         return [self.data_provider]
     
     #Returns name of the metric as str
-    def get_metric_name(self):
+    @staticmethod
+    def get_metric_name():
         return "CEXP"
     
     #Returns at what level was the metric collected at
-    def get_collection_level(self):
+    @staticmethod
+    def get_collection_level():
         return "commit"
     
     #Called once per commit, excludes current commit data (pre pre_calc_per_file call)
@@ -33,7 +35,7 @@ class Metric_CEXP(Metric_Interface):
     #Called once per file in a commit
     def pre_calc_per_file(self, file, commit, is_commit_of_interest, calc_only_commits_of_interest):
         metric_data = self.data_provider.get_data()
-        author = helper_commit_author(commit)
+        author = Data_Calculator_Util.get_commit_author(commit)
         #commit and we have data for file and author
         if (is_commit_of_interest or not calc_only_commits_of_interest) and metric_data and file.new_path in metric_data.keys() and author in metric_data[file.new_path].keys():
             self.commits_made_by_author.append(metric_data[file.new_path][author])

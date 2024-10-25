@@ -1,5 +1,5 @@
 from metrics.metric_interface import Metric_Interface
-from metrics.data_calculator_util import *
+from metrics.data_calculator_util import Data_Calculator_Util
 from metrics.data_provider.data_provider_lines_per_file_per_author import Data_Provider_Lines_Per_File_Per_Author
 from metrics.data_provider.data_provider_commits_per_file_per_author import Data_Provider_Commits_Per_File_Per_Author
 from metrics.data_provider.data_provider_total_lines_authored_in_project import Data_Provider_Total_Lines_Authored_In_Project
@@ -29,11 +29,13 @@ class Metric_OEXP(Metric_Interface):
         return [self.data_provider_contributions, self.data_provider_commits, self.data_provider_tla_in_project]
 
     #Returns name of the metric as str
-    def get_metric_name(self):
+    @staticmethod
+    def get_metric_name():
         return "OEXP"
     
     #Returns at what level was the metric collected at
-    def get_collection_level(self):
+    @staticmethod
+    def get_collection_level():
         return "file"
 
     #Returns name of the author that is highest commiter of the file based on the given data
@@ -52,7 +54,7 @@ class Metric_OEXP(Metric_Interface):
         tla_in_project = self.data_provider_tla_in_project.get_data()
         #is refactorings commit
         if (is_commit_of_interest or not calc_only_commits_of_interest) and commit_data and contribution_data and tla_in_project:
-            for file in helper_list_commit_files(commit):
+            for file in Data_Calculator_Util.list_commit_files(commit):
                 #Ownership is defined by the number of commits made to the given file
                 highest_commiter_of_file = self.get_highest_commiter_of_file(commit_data, file)
                 lines_contributed_by_hc = contribution_data[file][highest_commiter_of_file["author"]]

@@ -1,5 +1,5 @@
 from .data_provider_interface import Data_Provider_Interface
-from metrics.data_calculator_util import *
+from metrics.data_calculator_util import Data_Calculator_Util
 from pydriller import ModificationType
 
 #Metrics rely on common data. Instead of each metric calculating it on its own
@@ -13,7 +13,7 @@ class Data_Provider_Commits_Per_File_Per_Author(Data_Provider_Interface):
             #Reference the previous path for continuity
             self.commits_per_author_per_file[file.new_path] = self.commits_per_author_per_file.setdefault(file.old_path, {})
         #Add commit to the file calc
-        author = helper_commit_author(commit)
+        author = Data_Calculator_Util.get_commit_author(commit)
         file_authors = self.commits_per_author_per_file.setdefault(file.new_path, {})
         file_authors[author] = file_authors.get(author, 0) + 1
 

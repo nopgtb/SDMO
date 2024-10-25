@@ -1,5 +1,5 @@
 from metrics.metric_interface import Metric_Interface
-from metrics.data_calculator_util import *
+from metrics.data_calculator_util import Data_Calculator_Util
 from metrics.data_provider.data_provider_total_lines_authored_in_project import Data_Provider_Total_Lines_Authored_In_Project
 
 #   - Calculate exp of all devs in project at the time
@@ -25,16 +25,18 @@ class Metric_EXP(Metric_Interface):
         return [self.data_provider_tla_in_project]
 
     #Returns name of the metric as str
-    def get_metric_name(self):
+    @staticmethod
+    def get_metric_name():
         return "EXP"
     
     #Returns at what level was the metric collected at
-    def get_collection_level(self):
+    @staticmethod
+    def get_collection_level():
         return "author"
 
     #Called once per file in a commit
     def pre_calc_per_file(self, file, commit, is_commit_of_interest, calc_only_commits_of_interest):
-        author = helper_commit_author(commit)
+        author = Data_Calculator_Util.get_commit_author(commit)
         self.lines_per_author[author] = self.lines_per_author.get(author, 0) + file.added_lines + file.deleted_lines
 
     #Called once per commit, includes current commit data (post pre_calc_per_file call)

@@ -16,11 +16,13 @@ class Metric_NF(Metric_Interface):
         return [self.data_provider]
 
     #Returns name of the metric as str
-    def get_metric_name(self):
+    @staticmethod
+    def get_metric_name():
         return "NF"
     
     #Returns at what level was the metric collected at
-    def get_collection_level(self):
+    @staticmethod
+    def get_collection_level():
         return "commit"
 
     #Called to fetch the metric value for current commit

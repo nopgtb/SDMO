@@ -16,11 +16,13 @@ class Metric_NOPM(Metric_Interface):
         return [self.data_provider]
     
     #Returns name of the metric as str
-    def get_metric_name(self):
+    @staticmethod
+    def get_metric_name():
         return "NOPM"
     
     #Returns at what level was the metric collected at
-    def get_collection_level(self):
+    @staticmethod
+    def get_collection_level():
         return "class"
 
     #Called to fetch the metric value for current commit
@@ -29,5 +31,5 @@ class Metric_NOPM(Metric_Interface):
         #If we have data for commit
         if metric_data and commit_hash in metric_data.keys():
             #for class in metric_data[hash] {class["class"] : class["publicMethodsQty"]}
-            return {c["class"]:c["publicMethodsQty"] for c in metric_data[commit_hash]}
-        return {}
+            return [{"class":c["class"], "metric":c["publicMethodsQty"]} for c in metric_data[commit_hash]]
+        return []

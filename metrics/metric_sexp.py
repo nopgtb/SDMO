@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 from metrics.metric_interface import Metric_Interface
-from metrics.data_calculator_util import *
+from metrics.data_calculator_util import Data_Calculator_Util
 from pydriller import ModificationType
 
 #SEXP
@@ -20,11 +20,13 @@ class Metric_SEXP(Metric_Interface):
         return []
     
     #Returns name of the metric as str
-    def get_metric_name(self):
+    @staticmethod
+    def get_metric_name():
         return "SEXP"
     
     #Returns at what level was the metric collected at
-    def get_collection_level(self):
+    @staticmethod
+    def get_collection_level():
         return "file"
 
     #Called once per commit, excludes current commit data (pre pre_calc_per_file call)
@@ -36,9 +38,9 @@ class Metric_SEXP(Metric_Interface):
     #Called once per file in a commit
     def pre_calc_per_file(self, file, commit, is_commit_of_interest, calc_only_commits_of_interest):
         #Fetch file package
-        packages = helper_extract_modified_packages(file)
+        packages = Data_Calculator_Util.extract_modified_packages(file)
         if packages:
-            author = helper_commit_author(commit)
+            author = Data_Calculator_Util.get_commit_author(commit)
             #Keep running count for commits made to the package
             if not packages[0] in self.packages_in_this_commit:
                 self.packages_in_this_commit.append(packages[0])

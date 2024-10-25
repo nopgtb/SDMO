@@ -47,25 +47,29 @@ def run_metric_precalculations(repository, branch, commits_of_interest, metrics_
 
     #Run calculations on the commits and files
     for commit in Repository(repository, only_in_branch=branch).traverse_commits():
-        #Are we a coi commit?
-        is_commit_of_interest = (commit.hash in commits_of_interest)
+        try:
+            #Are we a coi commit?
+            is_commit_of_interest = (commit.hash in commits_of_interest)
 
-        #Run exclusive commit calculations
-        for calculator in data_calculators:
-            calculator.pre_calc_per_commit_exlusive(commit, is_commit_of_interest, analyze_only_commits_of_interest)
-        
-        #Run per file calculations
-        for modified_file in commit.modified_files:
+            #Run exclusive commit calculations
             for calculator in data_calculators:
-                calculator.pre_calc_per_file(modified_file, commit, is_commit_of_interest, analyze_only_commits_of_interest)
-        
-        #Run inclusive commit calculations
-        for calculator in data_calculators:
-            calculator.pre_calc_per_commit_inclusive(commit, is_commit_of_interest, analyze_only_commits_of_interest)
-        
-        #Run reset checks for calculators
-        for calculator in data_calculators:
-            calculator.pre_calc_check_for_reset(commit, is_commit_of_interest, analyze_only_commits_of_interest)
+                calculator.pre_calc_per_commit_exlusive(commit, is_commit_of_interest, analyze_only_commits_of_interest)
+            
+            #Run per file calculations
+            for modified_file in commit.modified_files:
+                for calculator in data_calculators:
+                    calculator.pre_calc_per_file(modified_file, commit, is_commit_of_interest, analyze_only_commits_of_interest)
+            
+            #Run inclusive commit calculations
+            for calculator in data_calculators:
+                calculator.pre_calc_per_commit_inclusive(commit, is_commit_of_interest, analyze_only_commits_of_interest)
+            
+            #Run reset checks for calculators
+            for calculator in data_calculators:
+                calculator.pre_calc_check_for_reset(commit, is_commit_of_interest, analyze_only_commits_of_interest)
+        except:
+            #Git might trow not found errors so just continue
+            continue
 
     #Wait for external tools to finish
     for calculator in data_calculators:

@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 from metrics.metric_interface import Metric_Interface
-from metrics.data_calculator_util import *
+from metrics.data_calculator_util import Data_Calculator_Util
 from pydriller import ModificationType
 
 #rolling time window of 30 days in the past, starting from commiting date
@@ -23,11 +23,13 @@ class Metric_REXP(Metric_Interface):
         return []
     
     #Returns name of the metric as str
-    def get_metric_name(self):
+    @staticmethod
+    def get_metric_name():
         return "REXP"
     
     #Returns at what level was the metric collected at
-    def get_collection_level(self):
+    @staticmethod
+    def get_collection_level():
         return "file"
 
     #Called once per commit, excludes current commit data (pre pre_calc_per_file call)
@@ -42,7 +44,7 @@ class Metric_REXP(Metric_Interface):
             self.commits_made[file.new_path] = self.commits_made.setdefault(file.old_path, {})
         current_date = commit.committer_date
         current_date_str = current_date.strftime("%Y_%m_%d")
-        author = helper_commit_author(commit)
+        author = Data_Calculator_Util.get_commit_author(commit)
         date_authors = self.commits_made.setdefault(file.new_path, {}).setdefault(current_date_str, {}) 
         date_authors[author] = date_authors.get(author, 0) + 1
         #Make waypoint for commits

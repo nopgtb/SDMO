@@ -1,5 +1,5 @@
 from metrics.metric_interface import Metric_Interface
-from metrics.data_calculator_util import *
+from metrics.data_calculator_util import Data_Calculator_Util
 
 #What is considered a subsystem?
 #Packages
@@ -23,11 +23,13 @@ class Metric_NS(Metric_Interface):
         return []
     
     #Returns name of the metric as str
-    def get_metric_name(self):
+    @staticmethod
+    def get_metric_name():
         return "NS"
     
     #Returns at what level was the metric collected at
-    def get_collection_level(self):
+    @staticmethod
+    def get_collection_level():
         return "commit"
 
     #Called once per commit, excludes current commit data (pre pre_calc_per_file call)
@@ -38,7 +40,7 @@ class Metric_NS(Metric_Interface):
     def pre_calc_per_file(self, file, commit, is_commit_of_interest, calc_only_commits_of_interest):
         #Get Modified packages and append them to commit data
         if is_commit_of_interest or not calc_only_commits_of_interest:
-            self.packages_modified_per_commit[file.new_path] = helper_extract_modified_packages(file)
+            self.packages_modified_per_commit[file.new_path] = Data_Calculator_Util.extract_modified_packages(file)
 
     #Number of packages modified in this commit
     def count_packages_modified(self, pr_commit):

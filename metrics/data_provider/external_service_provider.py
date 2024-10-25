@@ -1,5 +1,5 @@
 from .data_provider_interface import Data_Provider_Interface
-from metrics.data_calculator_util import *
+from metrics.data_calculator_util import Data_Calculator_Util
 from metrics.external_tools.external_runner import tool_is_present, get_tool_instruction_path, get_file_path, get_tool_temp_folder, get_output_paths
 
 #Metrics rely on common data. Instead of each metric calculating it on its own
@@ -14,12 +14,12 @@ class External_Service_Provider(Data_Provider_Interface):
     def pre_calc_run_external(self, repository, branch, commits_of_interest, analyze_only_commits_of_interest):
         if self.service_needs and tool_is_present(self.service_needs):
             #Make own copy of the git to avoid wasting time on lockouts
-            new_repository = helper_copy_git(repository, get_tool_temp_folder())
+            new_repository = Data_Calculator_Util.copy_git(repository, get_tool_temp_folder())
             #write data for the external tool to process and start it up
-            helper_write_external_instructions(get_tool_instruction_path(), new_repository, branch, commits_of_interest, analyze_only_commits_of_interest, self.tool_max_workers, self.service_needs)
-            self.tool_proc = helper_start_external_tool_process(get_file_path())
+            Data_Calculator_Util.write_external_instructions(get_tool_instruction_path(), new_repository, branch, commits_of_interest, analyze_only_commits_of_interest, self.tool_max_workers, self.service_needs)
+            self.tool_proc = Data_Calculator_Util.start_python_process(get_file_path())
         else:
-            helper_print("Warning: Some of the external tools needed were not found, cant start external service")
+            Data_Calculator_Util.output_to_console("Warning: Some of the external tools needed were not found, cant start external service")
 
     #Wait for the external proc to finish
     #and make its data available to metrics
@@ -32,10 +32,10 @@ class External_Service_Provider(Data_Provider_Interface):
     def reset_data(self):
         self.tool_max_workers = 2
         self.service_needs = []
-        helper_remove_folder(get_tool_temp_folder())
-        helper_remove_file(get_tool_instruction_path())
+        Data_Calculator_Util.remove_folder(get_tool_temp_folder())
+        Data_Calculator_Util.remove_file(get_tool_instruction_path())
         for path in get_output_paths():
-            helper_remove_file(path)
+            Data_Calculator_Util.remove_file(path)
     
     #Returns the data of the data provider
     def get_data(self):

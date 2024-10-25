@@ -3,15 +3,15 @@
 #or just run the succested command for each folder
 
 import shutil
-from pydriller import Repository #pip install pydriller
-from common import relative_to_absolute, read_json, write_json, makedirs_helper, get_repo_name, write_json, file_exists
+from pydriller import Repository
+from util import Util
 
 #Extract all the commits that have been deemed to have refactorings
 def get_refactored_commits(mined_repo):
     rf_commits = []
     #is valid report?
     if mined_repo["mining_report"] != "MINING_FAILED":
-        mining_report = read_json(mined_repo["mining_report"])
+        mining_report = Util.read_json(mined_repo["mining_report"])
         for commit in mining_report["commits"]:
             #If the commit has refactorings
             if len(commit["refactorings"]) > 0:
@@ -32,34 +32,38 @@ def mine_details_from_repo(mr, mined_commits):
     if len(mined_commits) > 0:
         #https://pydriller.readthedocs.io/en/latest/commit.html for commit struct info
         for commit in Repository(mr["local_path"]).traverse_commits():
-            #is refactoring commit?
-            if(commit.hash in mined_commits):
-                detailed_commit_info.append({
-                    "hash":commit.hash,
-                    "msg": commit.msg ,
-                    "diff":[{"file": mf.filename, "new_path": mf.new_path, "old_path": mf.old_path, "diff_parsed": mf.diff_parsed} for mf in commit.modified_files],
-                    "previous_hash": get_previous_commit(commit)
-                })
+            try:
+                #is refactoring commit?
+                if(commit.hash in mined_commits):
+                    detailed_commit_info.append({
+                        "hash":commit.hash,
+                        "msg": commit.msg ,
+                        "diff":[{"file": mf.filename, "new_path": mf.new_path, "old_path": mf.old_path, "diff_parsed": mf.diff_parsed} for mf in commit.modified_files],
+                        "previous_hash": get_previous_commit(commit)
+                    })
+            except:
+                #Git might thorw some errors just continue
+                continue
     return detailed_commit_info
 
 
-output_file = relative_to_absolute("part_1_submission_index.json")
-input_file = relative_to_absolute("mining_index.json")
+output_file = Util.relative_to_absolute("part_1_submission_index.json")
+input_file = Util.relative_to_absolute("mining_index.json")
 
-if not file_exists(output_file):
-    if file_exists(input_file):
+if not Util.file_exists(output_file):
+    if Util.file_exists(input_file):
         #make submission folder
-        submission_folder = relative_to_absolute("part_1_submission")
-        if(makedirs_helper(submission_folder)):
+        submission_folder = Util.relative_to_absolute("part_1_submission")
+        if(Util.make_directory(submission_folder)):
             #Read the mined repos for processing
-            mined_repos = read_json(input_file)
+            mined_repos = Util.read_json(input_file)
             
             #process repos
             for mr in mined_repos:
                 print("Mining details from: " + mr["source_git"])
                 #check if we want to skip this
-                repo_submission_folder = submission_folder + "/" + get_repo_name(mr["source_git"])
-                if not file_exists(repo_submission_folder):
+                repo_submission_folder = submission_folder + "/" + Util.get_repo_name(mr["source_git"])
+                if not Util.file_exists(repo_submission_folder):
                     #Get all refactored commits
                     refactored_commits = get_refactored_commits(mr)
                     #Mine wanted data from the repo
@@ -69,16 +73,16 @@ if not file_exists(output_file):
                     #output to submission folder
                     #Create folder for repo
 
-                    makedirs_helper(repo_submission_folder)
+                    Util.make_directory(repo_submission_folder)
                     #Copy rminer output
                     shutil.copyfile(mr["mining_report"], repo_submission_folder + "/rminer-output.json")
                     #write refactor commit message file
-                    write_json(
+                    Util.write_json(
                         repo_submission_folder + "/rcommit-messages.json", 
                         [{"commit_hash" : commit["hash"], "commit_message": commit["msg"]} for commit in mined_commits]
                     )
                     #write diff json
-                    write_json(
+                    Util.write_json(
                         repo_submission_folder + "/rcommit-diffs.json",
                         [{"commit_hash": commit["hash"], "previous_commit_hash": commit["previous_hash"], "diff": commit["diff"]} for commit in mined_commits]
                     )
@@ -87,7 +91,7 @@ if not file_exists(output_file):
                 mr["commit_messages"] = repo_submission_folder + "/rcommit-messages.json"
                 mr["commit_diffs"] = repo_submission_folder + "/rcommit-diffs.json"
 
-            write_json(output_file, mined_repos)
+            Util.write_json(output_file, mined_repos)
         else:
             print("Failed to create folder. Could not proceed")
     else:

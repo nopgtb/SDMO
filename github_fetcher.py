@@ -8,19 +8,19 @@
 #It gave me checkout errors this helped if you get them too: git config --system core.longpaths true
 
 import time
-from git import Repo  # pip install gitpython
-from common import relative_to_absolute, read_csv, write_json, makedirs_helper, get_repo_name, file_exists
+from git import Repo
+from util import Util
 
 #Fetches the given git project and stores it into target/name folder
 #name is decoded from the source
 #returns the gits new local path
 def fetch_git(source, target):
-    name = get_repo_name(source)
+    name = Util.get_repo_name(source)
     try:
         repo_local_path = target + "\\" + name
         #If it exists assume we fetched earlier
         #Just return the path
-        if not file_exists(repo_local_path):
+        if not Util.file_exists(repo_local_path):
             Repo.clone_from(source, repo_local_path)
         return repo_local_path
     except Exception as e:
@@ -28,16 +28,16 @@ def fetch_git(source, target):
     return "FETCH_FAILED"
  
 #Source of data, modify to reflect the file you importing the gits from
-input_file = relative_to_absolute("source.csv")
-output_file = relative_to_absolute("fetch_index.json")
+input_file = Util.relative_to_absolute("source.csv")
+output_file = Util.relative_to_absolute("fetch_index.json")
 
-if not file_exists(output_file):
-    if file_exists(input_file):
+if not Util.file_exists(output_file):
+    if Util.file_exists(input_file):
         #Read sources
-        sources = read_csv(input_file, ",", {"source_git":0})
+        sources = Util.read_csv(input_file, ",", {"source_git":0})
         #create a folder to fetch to
-        fetch_target = relative_to_absolute("fetched_git")
-        if(makedirs_helper(fetch_target)):
+        fetch_target = Util.relative_to_absolute("fetched_git")
+        if(Util.make_directory(fetch_target)):
             #Start fetching gits
             result_index = []
             for i,source in enumerate(sources):
@@ -47,7 +47,7 @@ if not file_exists(output_file):
                 #sleep 30 seconds and dont spam
                 time.sleep(30)
             #Write index for further processing
-            write_json(output_file, result_index)
+            Util.write_json(output_file, result_index)
         else:
             print("Failed to create folder. Cant proceed")
     else:

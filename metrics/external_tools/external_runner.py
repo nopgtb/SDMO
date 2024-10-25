@@ -1,50 +1,32 @@
-#Excepts a packaged version of https://github.com/mauricioaniche/ck
-#to be placed in same folder with this script named "ck.jar"
-
 import os
-import csv
-import json
 import queue
-import shutil
 import threading
-import subprocess
 from pathlib import Path
 from pydriller import Repository
 
-
 if __name__ == "__main__":
     #if run from service 
-    from ck import ck_collect_tool_data, ck_analyze_commit_files, ck_tool_is_present, ck_get_tool_id, ck_output_data, ck_get_tool_output_path
+    from ck import CK
+    from external_tool_util import External_Tool_Util
 else:
-    from .ck import ck_collect_tool_data, ck_analyze_commit_files, ck_tool_is_present, ck_get_tool_id, ck_output_data, ck_get_tool_output_path
+    from .ck import CK
+    from .external_tool_util import External_Tool_Util
 
 #Tool mappings
 external_tool_mappings = {
-    ck_get_tool_id(): {
-        "collect": ck_collect_tool_data,
-        "analyze": ck_analyze_commit_files,
-        "present": ck_tool_is_present,
-        "output": ck_output_data,
-        "output_path": ck_get_tool_output_path
+    CK.get_tool_id(): {
+        "collect": CK.collect_tool_data,
+        "analyze": CK.start_tool_proc,
+        "present": CK.tool_present,
+        "output": CK.output_tool_data,
+        "output_path": CK.get_output_path
     }
 }
-
-#read a json file
-def read_json(path):
-    data = {}
-    with open(path, "r") as file:
-        data = json.load(file)
-    return data
-
-#Writes json to file
-def write_json(path, data):
-    with open(path, "a+") as file:
-        json.dump(data, file)
 
 #Reads a json file to communicate with the external tool scripts
 def read_external_instructions(path):
     structure = ["repository", "COI", "analyze_only_commits_of_interest", "branch", "max_workers", "service_needs"]
-    data = read_json(path)
+    data = External_Tool_Util.read_json(path)
     values = {}
     valid_instructions = True
     for k in structure:
@@ -53,14 +35,6 @@ def read_external_instructions(path):
         else:
             valid_instructions = False
     return values, valid_instructions
-
-#gets the parent folder for the script
-def get_parent_folder():
-    return str(Path(os.path.abspath(__file__)).parent)
-
-#turns relative path to absolute path relative to the .py file location
-def relative_to_absolute(path):
-    return get_parent_folder() + "\\" + path
 
 #Returns the absolute path of this file
 def get_file_path():
@@ -83,24 +57,15 @@ def get_output_paths():
 
 #Returns the absolute path we expect to find our instructions at
 def get_tool_instruction_path():
-    return relative_to_absolute("external_instructions.json")
+    return External_Tool_Util.relative_to_absolute("external_instructions.json", __file__)
 
 #Returns tools temp folder
 def get_tool_temp_folder():
-    return relative_to_absolute(external_temp_folder)
-
-#Returns if folder exists
-def folder_exists(path):
-    return os.path.exists(path)
-
-#Create a folder
-def create_folder(path):
-    if not folder_exists(path):
-        os.makedirs(path, exist_ok=True)
+    return External_Tool_Util.relative_to_absolute("external_service_temp", __file__)
 
 #Writes the commit files onto hdd
 def write_commit_files(path, commit):
-    create_folder(path)
+    External_Tool_Util.create_folder(path)
     #avoid conflicts by prefixing file names
     file_num = 0
     for file in commit["files"]:
@@ -117,7 +82,7 @@ def worker():
     while True:
         commit = tool_queue.get()
         #Write files for analysis by the tool
-        commit_temp_folder = relative_to_absolute(external_temp_folder + "\\" + commit["hash"])
+        commit_temp_folder = get_tool_temp_folder() + "\\" + commit["hash"]
         write_commit_files(commit_temp_folder, commit)
         #Analyze files using the external tools and wait for them to finish
         service_procs = {}
@@ -130,8 +95,6 @@ def worker():
             tool_data_per_commit[service][commit["hash"]] = external_tool_mappings[service]["collect"](commit_temp_folder)
         #move to next job
         tool_queue.task_done()
-
-external_temp_folder = "external_service_temp"
 
 #Run if we have a tool to run
 if __name__ == "__main__":

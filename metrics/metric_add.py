@@ -19,11 +19,13 @@ class Metric_ADD(Metric_Interface):
         return []
     
     #Returns name of the metric as str
-    def get_metric_name(self):
+    @staticmethod
+    def get_metric_name():
         return "ADD"
     
     #Returns at what level was the metric collected at
-    def get_collection_level(self):
+    @staticmethod
+    def get_collection_level():
         return "commit"
 
     #Called once per commit, excludes current commit data (pre pre_calc_per_file call)

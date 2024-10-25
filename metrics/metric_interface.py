@@ -9,11 +9,13 @@ class Metric_Interface(Data_Calculator_Interface):
         pass
     
     #Returns at what level was the metric collected at
-    def get_collection_level(self):
+    @staticmethod
+    def get_collection_level():
         pass
     
     #Returns name of the metric as str
-    def get_metric_name(self):
+    @staticmethod
+    def get_metric_name():
         pass
 
     #Data providers for the metric

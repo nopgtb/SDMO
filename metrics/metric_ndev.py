@@ -18,11 +18,13 @@ class Metric_NDEV(Metric_Interface):
         return [self.data_provider]
 
     #Returns name of the metric as str
-    def get_metric_name(self):
+    @staticmethod
+    def get_metric_name():
         return "NDEV"
     
     #Returns at what level was the metric collected at
-    def get_collection_level(self):
+    @staticmethod
+    def get_collection_level():
         return "commit"
 
     #Called once per commit, excludes current commit data (pre pre_calc_per_file call)
