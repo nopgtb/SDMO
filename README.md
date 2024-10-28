@@ -12,17 +12,23 @@
 
 
 
+# Usage
+Excepts a csv containing targeted github projects placed into the project folder named "source.csv".  
+First column should contain the projects .git link  
 
+### Run all
+To execute all you can use the provided run_all script   
+### Run individually
+The project provides the following scripts   
+github_fetcher - Clones projects from given source.csv file  
+refactor_miner - runs refactorminer on the projects   
+analyze_refactor_miner_reports.py - Fetches data required for submission of part 1  
+calculate_metrics.py - Calculates metrics for the collected refactoring commits  
+metric_visualizer.py - Provides visualization for the collected metrics  
 
-github_fetcher - Clones projects given a csv file (git_link at index 0 for each line)  
-github_refactor_miner - runs refactorminer on the projects and generates report.json for them  
-github_analyze_refactor_miner_reports.py - Fetches data required for submission of part 1  
-  
-Basic usage part 1:     
-get csv for sources  (first comment of github_fetcher)    
-run github_fetcher  -- outputs fetch_index.csv   
-run refactor_miner -- takes in fetch_index and outputs mining_index    
-run analyze_refactor_miner_reports -- takes in mining_index and outputs files required for submission of part 1    
-   
-Basic usage part 2:  
-run calculate_metrics -- takes in part 1 submission and outputs metric data   
+# Metrics/* files
+Metric calculators can be found in metrics/*    
+They are split into three parts:   
+metric_* - Provides a interface for calculating and fetching metric values    
+data_provider/* - Provides singeltons for calculating common values for metric_*     
+external_tools/* - Interfaces to external tools   
