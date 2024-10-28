@@ -1,104 +1,81 @@
-import plotly.express as px
-from common import *
-import plotly.io
+from util import Util
 import pandas
 import metrics 
+from metric_graphing.heatmap_graph import HeatMap_Graph
+from metric_graphing.line_graph import Line_Graph
 
-def plug_dataframe(git, data, metric_to_plug):
-    if metric_to_plug.get_collection_level() == "commit":
-        return pandas.DataFrame(plug_commit_level_metric(git, data, metric_to_plug.get_metric_name()))
-    return pandas.DataFrame()
+metrics_table = {
+    metrics.Metric_COMM: [Line_Graph], #commit level
+    metrics.Metric_NCOMM: [HeatMap_Graph], #file level
+    metrics.Metric_ADEV: [Line_Graph], #commit level
+    metrics.Metric_DDEV: [Line_Graph], #commit level
+    metrics.Metric_ADD: [Line_Graph], #commit level
+    metrics.Metric_DEL: [Line_Graph], #commit level
+    metrics.Metric_OWN: [Line_Graph], #commit level
+    metrics.Metric_MINOR: [Line_Graph], #commit level
+    metrics.Metric_NADEV: [HeatMap_Graph], #file level
+    metrics.Metric_NDDEV: [HeatMap_Graph], #file level
+    metrics.Metric_OEXP: [HeatMap_Graph], #file level
+    metrics.Metric_EXP: [Line_Graph], #author level
+    metrics.Metric_ND: [Line_Graph], #commit level
+    metrics.Metric_NF: [Line_Graph], #commit level
+    metrics.Metric_NS: [Line_Graph], #commit level
+    metrics.Metric_ENTROPY: [Line_Graph], #commit level
+    metrics.Metric_LA: [Line_Graph], #commit level
+    metrics.Metric_LD: [Line_Graph], #commit level
+    metrics.Metric_LT: [Line_Graph], #commit level
+    metrics.Metric_FIX: [Line_Graph], #commit level
+    metrics.Metric_NDEV: [Line_Graph], #commit level
+    metrics.Metric_AGE: [Line_Graph], #commit level
+    metrics.Metric_NUC: [Line_Graph], #commit level
+    metrics.Metric_CEXP: [Line_Graph], #commit level
+    metrics.Metric_REXP: [HeatMap_Graph], #file level
+    metrics.Metric_SEXP: [HeatMap_Graph], #file level
+    metrics.Metric_CBO: [HeatMap_Graph], #class level
+    metrics.Metric_WMC: [HeatMap_Graph], #class level
+    metrics.Metric_RFC: [HeatMap_Graph], #class level
+    metrics.Metric_ELOC: [HeatMap_Graph], #class level
+    metrics.Metric_NOM: [HeatMap_Graph], #class level
+    metrics.Metric_NOPM: [HeatMap_Graph], #class level
+    metrics.Metric_DIT: [HeatMap_Graph], #class level
+    metrics.Metric_NOC: [HeatMap_Graph], #class level
+    metrics.Metric_NOF: [HeatMap_Graph], #class level
+    metrics.Metric_NOSF: [HeatMap_Graph], #class level
+    metrics.Metric_NOPF: [HeatMap_Graph], #class level
+    metrics.Metric_NOSM: [HeatMap_Graph], #class level
+    metrics.Metric_NOSI: [HeatMap_Graph], #class level
+    metrics.Metric_C3: [HeatMap_Graph], #class level
+}
 
-def plug_commit_level_metric(git, data, id):
-    return {
-        "git": [git for hash in data],
-        "values":[hash["metric_" + id] for hash in data],
-        "hash_num": [index for index,hash in enumerate(data)]
-    }
+input_file = Util.relative_to_absolute("part_2_submission_index.json")
+output_path = Util.relative_to_absolute("part_2_submission/graphs")
 
-def store_fig_html(path, fig):
-    plotly.io.write_html(fig, path)
-
-def store_fig_image(path, fig):
-    plotly.io.write_image(fig, path, "png")
-
-def visualize_metric(df, metric_to_plug):
-    if metric_to_plug.get_collection_level() == "commit":
-        return visualize_commit_level_metric(df, metric_to_plug)
-
-def visualize_commit_level_metric(df, metric_to_plug):
-    return px.line(df, x="hash_num", y="values", color = "git")
-
-
-#list for metric calculating functions
-metrics_table = [
-    metrics.Metric_COMM(),
-    metrics.Metric_NCOMM(),
-    metrics.Metric_ADEV(),
-    metrics.Metric_DDEV(),
-    metrics.Metric_ADD(),
-    metrics.Metric_DEL(),
-    metrics.Metric_OWN(),
-    metrics.Metric_MINOR(),
-    metrics.Metric_NADEV(),
-    metrics.Metric_NDDEV(),
-    metrics.Metric_OEXP(),
-    metrics.Metric_EXP(),
-    metrics.Metric_ND(),
-    metrics.Metric_NF(),
-    metrics.Metric_NS(),
-    metrics.Metric_ENTROPY(),
-    metrics.Metric_LA(),
-    metrics.Metric_LD(),
-    metrics.Metric_LT(),
-    metrics.Metric_FIX(),
-    metrics.Metric_NDEV(),
-    metrics.Metric_AGE(),
-    metrics.Metric_NUC(),
-    metrics.Metric_CEXP(),
-    metrics.Metric_REXP(),
-    metrics.Metric_SEXP(),
-    metrics.Metric_CBO(),
-    metrics.Metric_WMC(),
-    metrics.Metric_RFC(),
-    metrics.Metric_ELOC(),
-    metrics.Metric_NOM(),
-    metrics.Metric_NOPM(),
-    metrics.Metric_DIT(),
-    metrics.Metric_NOC(),
-    metrics.Metric_NOF(),
-    metrics.Metric_NOSF(),
-    metrics.Metric_NOPF(),
-    metrics.Metric_NOSM(),
-    metrics.Metric_NOSI(),
-]
-
-input_file = relative_to_absolute("part_2_submission_index.json")
-if file_exists(input_file):
-    fig_folder = relative_to_absolute("metric_figs")
-    if makedirs_helper(fig_folder):
+if Util.file_exists(input_file):
+    if Util.make_directory(output_path):
         #Read index
-        repositories = read_json(input_file)
+        repositories = Util.read_json(input_file)
         #Load metric datas
         metric_reports = {}
         for repository in repositories:
-            metric_reports[get_repo_name(repository["source_git"])] = read_json(repository["metric_report"])
+            repo_name = Util.get_repo_name(repository["source_git"])
+            repo_graph_folder = output_path + "\\" + repo_name
+            repo_html_folder = output_path + "\\" + repo_name + "\\html"
+            #Create folder for the git and add the data for processing
+            if Util.make_directory(repo_graph_folder) and Util.make_directory(repo_html_folder):
+                metric_reports[repo_name] = Util.read_json(repository["metric_report"])
 
+        #Process read data
         for metric in metrics_table:
-            #Plug all the data for the metric accross projects
-            metric_dataframes = []
-            for repo_name in metric_reports:
-                df = plug_dataframe(repo_name, metric_reports[repo_name], metric)
-                if not df.empty :
-                    metric_dataframes.append(df)
-            #combine them into one df
-            if len(metric_dataframes) > 0:
-                combined_dataframe = pandas.concat(metric_dataframes)
-                #visualize the frame
-                fig = visualize_metric(combined_dataframe, metric)
-                fig_filename = fig_folder + "\\" + metric.get_metric_name()
-                store_fig_html(fig_filename + ".html", fig)
-                store_fig_image(fig_filename + ".png", fig)
+            for graph_type in metrics_table[metric]:
+                #Get data in format for the graph
+                fig_data = graph_type.get_data_frame(repo_name, metric_reports[repo_name], metric)
+                if isinstance(fig_data, pandas.DataFrame) and not fig_data.empty or not isinstance(fig_data, pandas.DataFrame) and fig_data:
+                    #If data graph and save
+                    fig = graph_type.graph(fig_data, metric)
+                    fig_name = graph_type.get_graph_type() + "_" + metric.get_metric_name()
+                    graph_type.save_fig(repo_graph_folder, repo_html_folder, fig_name, fig)
+                else:
+                    print("Could not graph: ", metric.get_metric_name())
 else:
     print("Did not find input file: ", input_file)
     

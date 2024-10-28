@@ -42,7 +42,7 @@ class Metric_OEXP(Metric_Interface):
             self.exprience_of_files_highest_commiter[commit.hash] = []
             for file in Data_Calculator_Util.list_commit_files(commit):
                 #Ownership is defined by the number of commits made to the given file
-                hc_author, hc_commit_count  = Data_Calculator_Util.get_highest_commiter_of_file(commit_data, file.new_path)
+                hc_author, hc_commit_count  = Data_Calculator_Util.get_highest_commiter_of_file(commit_data, file)
                 #We got hc author and they have data
                 if hc_author and hc_author in lpa_data.keys():
                     lines_contributed_by_hc = lpa_data.get(hc_author)
