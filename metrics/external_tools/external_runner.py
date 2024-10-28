@@ -6,10 +6,12 @@ from pydriller import Repository
 
 if __name__ == "__main__":
     #if run from service 
-    from ck import CK
+    from external_ck import CK
+    from external_c3 import C3
     from external_tool_util import External_Tool_Util
 else:
-    from .ck import CK
+    from .external_ck import CK
+    from .external_c3 import C3
     from .external_tool_util import External_Tool_Util
 
 #Tool mappings
@@ -20,6 +22,13 @@ external_tool_mappings = {
         "present": CK.tool_present,
         "output": CK.output_tool_data,
         "output_path": CK.get_output_path
+    },
+    C3.get_tool_id(): {
+        "collect": C3.collect_tool_data,
+        "analyze": C3.start_tool_proc,
+        "present": C3.tool_present,
+        "output": C3.output_tool_data,
+        "output_path": C3.get_output_path
     }
 }
 

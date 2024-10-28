@@ -42,4 +42,6 @@ class Metric_COMM(Metric_Interface):
 
     #Called to fetch the metric value for current commit
     def get_metric(self, commit_hash):
-        return sum(self.commit_per_file_waypoints.get(commit_hash, []))
+        if commit_hash in self.commit_per_file_waypoints.keys():
+            return sum(self.commit_per_file_waypoints.get(commit_hash))
+        return None

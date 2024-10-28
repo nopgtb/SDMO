@@ -55,4 +55,6 @@ class Metric_ENTROPY(Metric_Interface):
 
     #Called to fetch the metric value for current commit
     def get_metric(self, commit_hash):
-        return self.commit_entropy_levels.get(commit_hash, {"entropy":0})["entropy"]
+        if commit_hash in self.commit_entropy_levels.keys():
+            return self.commit_entropy_levels.get(commit_hash)["entropy"]
+        return None

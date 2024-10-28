@@ -9,28 +9,6 @@ from pathlib import Path
 #Static class containing utility functions
 class Data_Calculator_Util:
 
-    #Calculates metric values for the given files from the given data
-    @staticmethod
-    def waypoint_per_file_neigbours(data, files, waypoint_metric_func):
-        metric_data = []
-        #Dont modify the source
-        neighbours = list(files)
-        excluded_file_index = len(neighbours) - 1
-        #run trough files calculating metric
-        while excluded_file_index >= 0:
-            #Pick out the targeted file
-            excluded_file = neighbours.pop(excluded_file_index)
-            #Calculate metric using the remaining files
-            metric_value = 0
-            for neighbour_file in neighbours:
-                metric_value = metric_value + waypoint_metric_func(data[neighbour_file])
-            #Remember the value for the excluded file
-            metric_data.append({"file": excluded_file, "metric": metric_value})
-            #Move to the next file and push the previous back on the neighbours
-            excluded_file_index = excluded_file_index - 1
-            neighbours.append(excluded_file)
-            return metric_data
-
     #Extract potential java package name from source code
     @staticmethod
     def extract_java_package_name(source_code):
@@ -149,3 +127,49 @@ class Data_Calculator_Util:
     def remove_file(path):
         if Data_Calculator_Util.path_exists(path):
             os.remove(path)
+
+    @staticmethod
+    #Returns name of the author that is highest commiter of the file based on the given data
+    def get_highest_commiter_of_file(commit_data, file):
+        hc_author = ""
+        hc_commit_count = 0
+        #File has commit data
+        if file in commit_data.keys():
+            #Loop trough the authors and find largest
+            for author in commit_data[file]:
+                commits_authored = commit_data[file][author]
+                if commits_authored > hc_commit_count:
+                    hc_commit_count = commits_authored
+                    hc_author = author
+        return hc_author, hc_commit_count
+    
+    #Returns list of hashes that contain the given file
+    @staticmethod
+    def commits_containing_file(commit_data, file, stop_at_commit, ignore_latest):
+        data = commit_data[file]
+        if stop_at_commit:
+            try:
+                stop_index = data.index(stop_at_commit)
+                data = data[stop_index:]
+            except:
+                pass
+        if ignore_latest:
+            data = data[:-1]
+        return data
+    
+    #Given a lists of commits per file, checks which commits have all files present
+    @staticmethod
+    def files_present_in_commits(smallest_list, lists):
+        files_present_in_commits = []
+        #Loop trought the shortest commit list and check if the others contain our commits
+        for hash in lists[smallest_list]:
+            present_in_all = True
+            for file_path in lists.keys():
+                #Commit present
+                present_in_all = (file_path == smallest_list) or (hash in lists[file_path])
+                #Are we done?
+                if not present_in_all:
+                    break
+            if present_in_all:
+                files_present_in_commits.append(hash)
+        return files_present_in_commits

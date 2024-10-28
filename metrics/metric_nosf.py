@@ -32,4 +32,4 @@ class Metric_NOSF(Metric_Interface):
         if metric_data and commit_hash in metric_data.keys():
             #for class in metric_data[hash] {class["class"] : class["staticFieldsQty"]}
             return [{"class":c["class"], "metric":c["staticFieldsQty"]} for c in metric_data[commit_hash]]
-        return []
+        return None

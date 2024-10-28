@@ -32,4 +32,4 @@ class Metric_ELOC(Metric_Interface):
         if metric_data and commit_hash in metric_data.keys():
             #for class in metric_data[hash] {class["class"] : class["loc"]}
             return [{"class":c["class"], "metric":c["loc"]} for c in metric_data[commit_hash]]
-        return []
+        return None

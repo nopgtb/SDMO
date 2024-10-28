@@ -30,4 +30,4 @@ class Metric_ND(Metric_Interface):
         metric_data = self.data_provider.get_data()
         if metric_data and commit_hash in metric_data.keys():
             return metric_data[commit_hash]["directory_count"]
-        return 0
+        return None

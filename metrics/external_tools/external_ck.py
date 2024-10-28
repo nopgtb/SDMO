@@ -3,7 +3,7 @@
 import subprocess
 from pathlib import Path
 
-if __name__ == "ck":
+if __name__ == "external_ck":
     #if run from service 
     from external_tool_interface import External_Tool_Interface
     from external_tool_util import External_Tool_Util
@@ -21,26 +21,29 @@ class CK(External_Tool_Interface):
     #Collect the output of the external tool
     @staticmethod
     def collect_tool_data(path):
-        return External_Tool_Util.read_csv(
-            path + "\\" + "class.csv", ",", 
-            [
-                #Header keys in class.csv
-                "class", #Name of the class
-                "cbo", #Coupling between object classes
-                "wmc", #Weighted methods per class
-                "rfc", #Response for a class
-                "loc", #Effective lines of code
-                "totalMethodsQty", #Number of methods in class
-                "publicMethodsQty", #Number of public methods in class
-                "dit", #Depth of inheritance tree
-                "noc", #Number of children
-                "totalFieldsQty", #Number of fields in class
-                "staticFieldsQty", #Number of static fields in class
-                "publicFieldsQty", #Number of public fields in class
-                "staticMethodsQty", #Number of static methods in class
-                "nosi" #Number of static invocations in class
-            ]
-        )
+        file_path = path + "\\" + "class.csv"
+        if External_Tool_Util.path_exists(file_path):
+            return External_Tool_Util.read_csv(
+                file_path, ",", 
+                [
+                    #Header keys in class.csv
+                    "class", #Name of the class
+                    "cbo", #Coupling between object classes
+                    "wmc", #Weighted methods per class
+                    "rfc", #Response for a class
+                    "loc", #Effective lines of code
+                    "totalMethodsQty", #Number of methods in class
+                    "publicMethodsQty", #Number of public methods in class
+                    "dit", #Depth of inheritance tree
+                    "noc", #Number of children
+                    "totalFieldsQty", #Number of fields in class
+                    "staticFieldsQty", #Number of static fields in class
+                    "publicFieldsQty", #Number of public fields in class
+                    "staticMethodsQty", #Number of static methods in class
+                    "nosi" #Number of static invocations in class
+                ]
+            )
+        return []
 
     #Returns the tools execution path
     @staticmethod

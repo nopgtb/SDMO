@@ -30,7 +30,7 @@ class External_Service_Provider(Data_Provider_Interface):
 
     #Initialize and Reset the data
     def reset_data(self):
-        self.tool_max_workers = 2
+        self.tool_max_workers = 3
         self.service_needs = []
         Data_Calculator_Util.remove_folder(get_tool_temp_folder())
         Data_Calculator_Util.remove_file(get_tool_instruction_path())

@@ -47,4 +47,4 @@ class Metric_NUC(Metric_Interface):
 
     #Called to fetch the metric value for current commit
     def get_metric(self, commit_hash):
-        return self.commit_files_modified_count.get(commit_hash, 0)
+        return self.commit_files_modified_count.get(commit_hash, None)

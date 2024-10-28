@@ -58,4 +58,4 @@ class Metric_ADD(Metric_Interface):
         if lines_added:
             #Average of the ADDS across the files of the commits
             return sum(lines_added) / len(lines_added)
-        return 0
+        return None

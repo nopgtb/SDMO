@@ -33,7 +33,7 @@ class Metric_SEXP(Metric_Interface):
     def pre_calc_per_commit_exlusive(self, commit, is_commit_of_interest, calc_only_commits_of_interest):
         self.packages_in_this_commit = []
         if is_commit_of_interest or not calc_only_commits_of_interest:
-            self.package_commits_made_coi_waypoints[commit.hash] = {}
+            self.package_commits_made_coi_waypoints[commit.hash] = []
 
     #Called once per file in a commit
     def pre_calc_per_file(self, file, commit, is_commit_of_interest, calc_only_commits_of_interest):
@@ -48,7 +48,7 @@ class Metric_SEXP(Metric_Interface):
                 self.package_commits_made[packages[0]][author] = self.package_commits_made[packages[0]][author] + 1
             #if is commit make waypoint data
             if is_commit_of_interest or not calc_only_commits_of_interest:
-                self.package_commits_made_coi_waypoints[commit.hash][file.new_path] = self.package_commits_made[packages[0]][author]
+                self.package_commits_made_coi_waypoints[commit.hash].append({"file": file.new_path, "metric": self.package_commits_made[packages[0]][author]})
 
     #Called to fetch the metric value for current commit
     def get_metric(self, commit_hash):

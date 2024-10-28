@@ -32,4 +32,4 @@ class Metric_NOPM(Metric_Interface):
         if metric_data and commit_hash in metric_data.keys():
             #for class in metric_data[hash] {class["class"] : class["publicMethodsQty"]}
             return [{"class":c["class"], "metric":c["publicMethodsQty"]} for c in metric_data[commit_hash]]
-        return []
+        return None

@@ -47,4 +47,4 @@ class Metric_CEXP(Metric_Interface):
 
     #Called to fetch the metric value for current commit
     def get_metric(self, commit_hash):
-        return self.commits_made_by_author_on_files.get(commit_hash, 0)
+        return self.commits_made_by_author_on_files.get(commit_hash, None)

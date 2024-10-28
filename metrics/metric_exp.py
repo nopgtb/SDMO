@@ -59,4 +59,4 @@ class Metric_EXP(Metric_Interface):
     #Called to fetch the metric value for current commit
     def get_metric(self, commit_hash):
         #EXP waypoint set for current_commit
-        return self.geometric_mean_of_exp.get(commit_hash, 0)
+        return self.geometric_mean_of_exp.get(commit_hash, None)

@@ -43,4 +43,6 @@ class Metric_ADEV(Metric_Interface):
     #Called to fetch the metric value for current commit
     def get_metric(self, commit_hash):
         #ADEV waypoint set for current_commit
-        return sum(self.contributors_per_file_waypoints.get(commit_hash, []))
+        if commit_hash in self.contributors_per_file_waypoints.keys():
+            return sum(self.contributors_per_file_waypoints.get(commit_hash))
+        return None

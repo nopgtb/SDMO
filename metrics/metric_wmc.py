@@ -32,4 +32,4 @@ class Metric_WMC(Metric_Interface):
         if metric_data and commit_hash in metric_data.keys():
             #for class in metric_data[hash] {class["class"] : class["wmc"]}
             return [{"class":c["class"], "metric":c["wmc"]} for c in metric_data[commit_hash]]
-        return []
+        return None

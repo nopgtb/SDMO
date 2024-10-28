@@ -45,11 +45,11 @@ class External_Tool_Util:
     
     #Returns if folder exists
     @staticmethod
-    def folder_exists(path):
+    def path_exists(path):
         return os.path.exists(path)
 
     #Create a folder
     @staticmethod
     def create_folder(path):
-        if not External_Tool_Util.folder_exists(path):
+        if not External_Tool_Util.path_exists(path):
             os.makedirs(path, exist_ok=True)

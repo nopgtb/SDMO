@@ -45,4 +45,4 @@ class Metric_NDEV(Metric_Interface):
         metric_data = self.data_provider.get_data()
         if metric_data and commit_hash in self.authors_per_commit.keys():
             return sum(self.authors_per_commit[commit_hash])
-        return 0
+        return None

@@ -56,4 +56,4 @@ class Metric_DEL(Metric_Interface):
         if lines_deleted:
             #Calculate the average of them for the commit level value
             return sum(lines_deleted) / len(lines_deleted)
-        return 0
+        return None

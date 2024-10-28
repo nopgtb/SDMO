@@ -58,4 +58,4 @@ class Metric_AGE(Metric_Interface):
 
     #Called to fetch the metric value for current commit
     def get_metric(self, commit_hash):
-        return self.commit_average_mod_interval.get(commit_hash, 0)
+        return self.commit_average_mod_interval.get(commit_hash, None)

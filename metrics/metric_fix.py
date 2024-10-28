@@ -38,4 +38,4 @@ class Metric_FIX(Metric_Interface):
 
     #Called to fetch the metric value for current commit
     def get_metric(self, commit_hash):
-        return self.jira_tasked.get(commit_hash, False)
+        return self.jira_tasked.get(commit_hash, None)

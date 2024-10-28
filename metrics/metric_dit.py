@@ -32,4 +32,4 @@ class Metric_DIT(Metric_Interface):
         if metric_data and commit_hash in metric_data.keys():
             #for class in metric_data[hash] {class["class"] : class["dit"]}
             return [{"class":c["class"], "metric":c["dit"]} for c in metric_data[commit_hash]]
-        return []
+        return None
