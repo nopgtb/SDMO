@@ -51,9 +51,7 @@ def svd(co_occurance_matrix, truncsvd):
 #Calculates the cosine similarity of the two given lsi values
 def cms(lsi1, lsi2):
     cs = cosine_similarity(lsi1.reshape(1,-1), lsi2.reshape(1,-1))
-    if cs[0,0] > 0:
-        return cs[0,0]
-    return 0
+    return cs[0,0]
 
 #Calculates the LSI value for the given words
 def lsi(m_words, word_map, unique_word_count, truncsvd):
@@ -200,7 +198,10 @@ def acsm(c, code):
 
 #Calculates the c3 value for the given class
 def c3(c, code):
-    return acsm(c, code)
+    val = acsm(c, code)
+    if val > 0:
+        return val
+    return 0
 
 #Traverses the given parsed tree and returns present classes
 def get_file_classes(parsed_java):

@@ -10,12 +10,21 @@
 ![GitHub forks](https://img.shields.io/github/forks/nopgtb/SDMO)
 ![GitHub Repo stars](https://img.shields.io/github/stars/nopgtb/SDMO)
 
-
+# Install
+Developed on python 3.12.3, install libaries using      
+```pip install -r requirements.txt```
 
 # Usage
 Excepts a csv containing targeted github projects placed into the project folder named "source.csv".  
 First column should contain the projects .git link  
-
+## External Tools
+Describes expected external tools   
+### RefactoringMiner
+Excepts a build version of refactorminer to be found at ./RefactoringMiner/bin   
+### ck
+Excepts a build version of ck to be found at ./metrics/external_tools/ck.jar      
+## Running
+You can run the project two ways
 ### Run all
 To execute all you can use the provided run_all script   
 ### Run individually
@@ -26,9 +35,13 @@ analyze_refactor_miner_reports.py - Fetches data required for submission of part
 calculate_metrics.py - Calculates metrics for the collected refactoring commits  
 metric_visualizer.py - Provides visualization for the collected metrics  
 
-# Metrics/* files
+# Code description
+Brief descriptions for the code   
+## metrics/*
 Metric calculators can be found in metrics/*    
 They are split into three parts:   
 metric_* - Provides a interface for calculating and fetching metric values    
 data_provider/* - Provides singeltons for calculating common values for metric_*     
 external_tools/* - Interfaces to external tools   
+## metric_graphing/*
+Contains rudimentary graphing tools for the metrics 

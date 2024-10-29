@@ -11,3 +11,4 @@ kaleido
 #c3
 javalang
 numpy
+scikit-learn
