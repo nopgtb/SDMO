@@ -12,7 +12,6 @@ import datetime
 from sklearn.decomposition import TruncatedSVD
 from sklearn.metrics.pairwise import cosine_similarity
 
-
 #Create co occurance matrix from the words. How many times did each word occur with its pair in the context?
 def create_co_occurance_matrix(m_words, word_map, unique_word_count):
     #Each array (variable/comment) in the words is treated as its own context window
@@ -47,11 +46,6 @@ def create_co_occurance_matrix(m_words, word_map, unique_word_count):
 #Calculates truncated svd
 def svd(co_occurance_matrix, truncsvd):
     return truncsvd.fit_transform(co_occurance_matrix)
-
-#Calculates the cosine similarity of the two given lsi values
-def cms(lsi1, lsi2):
-    cs = cosine_similarity(lsi1.reshape(1,-1), lsi2.reshape(1,-1))
-    return cs[0,0]
 
 #Calculates the LSI value for the given words
 def lsi(m_words, word_map, unique_word_count, truncsvd):
@@ -154,6 +148,14 @@ def get_class_methods(c, code):
         m["code"] = "\n".join(method_code)
     return methods
 
+#Combines the LSI values of the methods into single matrix
+def combine_methods(methods):
+    #Get all LSI values shaped as 2D array in one matrix
+    lsi_array = [m["lsi_value"].reshape(1,-1) for m in methods if isinstance(m["lsi_value"], np.ndarray)]
+    if lsi_array:
+        return np.vstack(lsi_array)
+    return None
+
 #Calculates the average cms value of the class
 def acsm(c, code):
     #Get methods present in class
@@ -177,23 +179,20 @@ def acsm(c, code):
         truncsvd = TruncatedSVD(n_components=min_dimensions)
         for m in methods:
             m["lsi_value"] = lsi(m["words"], word_map, word_count, truncsvd)
-
-        method_1 = 0
-        method_2 = 0
-        #Roll trough LSI pairs once calculating cms
-        #Dot(a,b) == Dot(b,a) 
-        #Average wont be affected by missing extra pair of same values
-        while method_1 < len(methods) -1:
-            method_2 = (method_1 + 1)
-            while method_2 < len(methods):
-                if isinstance(methods[method_1]["lsi_value"], np.ndarray) and isinstance(methods[method_2]["lsi_value"], np.ndarray):
-                    cms_values.append(cms(methods[method_1]["lsi_value"], methods[method_2]["lsi_value"]))
-                method_2 = method_2 + 1
-            method_1 = method_1 + 1
-        #If we have cms values
-        if cms_values:
-            #Return the average cms value
-            return sum(cms_values) / len(cms_values)
+        #Combine LSIs into single matrix
+        lsi_matrix = combine_methods(methods)
+        if isinstance(lsi_matrix, np.ndarray):
+            #Calculate similarity between each row pair in LSI matrix == CMS
+            lsi_sim_matrix = cosine_similarity(lsi_matrix)
+            #We only care about the values in the non diagonal upper triangle, sum them
+            #The upper and lower matrix are mirrored, avg wont be affected if we only calculate one of them
+            #Diag contains identity similarity == 1
+            np.fill_diagonal(lsi_sim_matrix, 0)
+            upper_sum = np.triu(lsi_sim_matrix).sum()
+            #Calculate size of non diag upper mat_size - (n*(n+1))/2, where n is mat size in dim 1
+            values_in_upper = (lsi_matrix.shape[0] * lsi_matrix.shape[0]) - ((lsi_matrix.shape[0] * (lsi_matrix.shape[0] + 1)) / 2)
+            #Return the average similarity
+            return upper_sum / values_in_upper
     return 0
 
 #Calculates the c3 value for the given class
