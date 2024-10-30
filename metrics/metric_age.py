@@ -10,7 +10,7 @@ class Metric_AGE(Metric_Interface):
     def __init__(self):
         super().__init__()
         #Commit hash => days on average since last change
-        self.commit_average_mod_interval = {}
+        self.commit_avg_mod_interval_waypoint = {}
         #file => [datetime of commit]
         self.file_modification_age = {}
         self.mod_time_sep = []
@@ -41,21 +41,23 @@ class Metric_AGE(Metric_Interface):
             self.file_modification_age[file.new_path] = self.file_modification_age.setdefault(file.old_path, [])
         self.file_modification_age.setdefault(file.new_path, []).append(commit.committer_date)
         
-        #Add data to the average calculation 
+        #We are calculating this file
         if is_commit_of_interest or not calc_only_commits_of_interest:
+            #We have data and its not just from this commit
             if self.file_modification_age and file.new_path in self.file_modification_age.keys() and len(self.file_modification_age[file.new_path]) > 1:
-                #Calculate the time between current mod and last mod
+                #Calculate the time between current file change and last file change
                 self.mod_time_sep.append((self.file_modification_age[file.new_path][-1] - self.file_modification_age[file.new_path][len(self.file_modification_age[file.new_path])-2]).days)
         
     #Called once per commit, includes current commit data (post pre_calc_per_file call)
     def pre_calc_per_commit_inclusive(self, commit, is_commit_of_interest, calc_only_commits_of_interest):
+        #We are calculating this commit
         if is_commit_of_interest or not calc_only_commits_of_interest:
-            #Calcualte the average
             if len(self.mod_time_sep) > 0:
-                self.commit_average_mod_interval[commit.hash] = sum(self.mod_time_sep) / len(self.mod_time_sep)
+                #Calcualte the average interval for this commits files
+                self.commit_avg_mod_interval_waypoint[commit.hash] = sum(self.mod_time_sep) / len(self.mod_time_sep)
             else:
-                self.commit_average_mod_interval[commit.hash] = 0
+                self.commit_avg_mod_interval_waypoint[commit.hash] = 0
 
     #Called to fetch the metric value for current commit
     def get_metric(self, commit_hash):
-        return self.commit_average_mod_interval.get(commit_hash, None)
+        return self.commit_avg_mod_interval_waypoint.get(commit_hash, None)

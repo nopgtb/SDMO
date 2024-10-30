@@ -16,7 +16,7 @@ class Data_Provider_Files_In_Commit(Data_Provider_Interface):
 
     #Initialize and Reset the data
     def reset_data(self):
-        #file => [hash]
+        #File => [hash]
         self.files_in_commits = {}
 
     #Returns the data of the data provider

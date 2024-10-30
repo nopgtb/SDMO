@@ -11,7 +11,7 @@ class Data_Provider_Commits_Per_File_From_Last_COI(Data_Provider_Interface):
         if file.change_type == ModificationType.RENAME:
             #Reference the previous path for continuity
             self.commits_per_file[file.new_path] = self.commits_per_file.setdefault(file.old_path, [])
-        #Add commit to the file calc
+        #Add one per commit. This is an array because we cant reference copy a number
         self.commits_per_file.setdefault(file.new_path, []).append(1)
 
     #If the calculator needs to reset calculations

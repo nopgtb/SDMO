@@ -9,10 +9,10 @@ class Metric_ADD(Metric_Interface):
     #Store the repo
     def __init__(self):
         super().__init__()
-        #hash => file => [norms of the files]
-        self.lines_added_waypoint = {}
-        #File => Lines added
-        self.lines_added = {}
+        #hash => file => [Commits files normalized line add value]
+        self.normal_line_add_waypoint = {}
+        #File => [Lines added to the given file. Array because we need to reference this]
+        self.files_total_lines_added = {}
 
     #Data providers for the metric
     def get_data_providers(self):
@@ -30,8 +30,9 @@ class Metric_ADD(Metric_Interface):
 
     #Called once per commit, excludes current commit data (pre pre_calc_per_file call)
     def pre_calc_per_commit_exlusive(self, commit, is_commit_of_interest, calc_only_commits_of_interest):
+        #Are we calculating this commit?
         if is_commit_of_interest or not calc_only_commits_of_interest:
-            self.lines_added_waypoint[commit.hash] = []
+            self.normal_line_add_waypoint[commit.hash] = []
 
     #Called once per file in a commit
     def pre_calc_per_file(self, file, commit, is_commit_of_interest, calc_only_commits_of_interest):
@@ -39,23 +40,24 @@ class Metric_ADD(Metric_Interface):
         #File name changed in this commit
         if file.change_type == ModificationType.RENAME:
             #Reference the previous path for continuity
-            self.lines_added[file.new_path] = self.lines_added.setdefault(file.old_path, [])
-        #Add deleted and added lines
-        self.lines_added.setdefault(file.new_path, []).append(file.added_lines)
+            self.files_total_lines_added[file.new_path] = self.files_total_lines_added.setdefault(file.old_path, [])
+        #Append number of lines added in this commit. This is an array because we cant reference a number
+        self.files_total_lines_added.setdefault(file.new_path, []).append(file.added_lines)
 
-        #Calculate the normal for this file
-        if (is_commit_of_interest or not calc_only_commits_of_interest) and file.new_path in self.lines_added.keys():
-            #sum total number of lines added to the given file
-            total_lines_added_to_file = sum(self.lines_added[file.new_path])
+        #We are calculating this file and we have data for it
+        if (is_commit_of_interest or not calc_only_commits_of_interest) and file.new_path in self.files_total_lines_added.keys():
+            #Number of lines added to this file during its lifetime
+            total_lines_added_to_file = sum(self.files_total_lines_added[file.new_path])
             if total_lines_added_to_file > 0:
-                #Normalize using the commits added lines
-                self.lines_added_waypoint[commit.hash].append((file.added_lines / total_lines_added_to_file))
+                #This files contribution to the commits waypoint is the normalized lines added
+                self.normal_line_add_waypoint[commit.hash].append((file.added_lines / total_lines_added_to_file))
 
     #Called to fetch the metric value for current commit
     def get_metric(self, commit_hash):
-        #Normals per file 
-        lines_added = self.lines_added_waypoint.get(commit_hash, [])
+        lines_added = self.normal_line_add_waypoint.get(commit_hash, [])
         if lines_added:
-            #Average of the ADDS across the files of the commits
+            #Calculate the average for the commits value
+            #The description doesn't really specify a way for us to get 
+            #to the commit level so i picked average 
             return sum(lines_added) / len(lines_added)
         return None

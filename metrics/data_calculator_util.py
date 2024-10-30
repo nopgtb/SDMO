@@ -173,3 +173,19 @@ class Data_Calculator_Util:
             if present_in_all:
                 files_present_in_commits.append(hash)
         return files_present_in_commits
+    
+    #Returns the number of LOC contributed by the given author. if none given returns total number of lines contributed by all authors
+    @staticmethod
+    def get_total_lines_contributed_by_author(file_contribution_data, file, author):
+        total_lines_contrib_for_file = 0
+        #We have data for the file
+        if file.new_path in file_contribution_data.keys():
+            #We want data for all authors
+            if not author:
+                for file_author in file_contribution_data[file.new_path]:
+                    #Sum number of LOC contributed by all authors
+                    total_lines_contrib_for_file = total_lines_contrib_for_file + file_contribution_data[file.new_path][file_author]
+            #We have data for the author we want
+            elif author in file_contribution_data[file.new_path]:
+                total_lines_contrib_for_file = file_contribution_data[file.new_path][author]
+        return total_lines_contrib_for_file

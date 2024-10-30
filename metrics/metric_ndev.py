@@ -11,7 +11,7 @@ class Metric_NDEV(Metric_Interface):
         super().__init__()
         self.data_provider = Data_Provider_Lines_Per_File_Per_Author()
         #commit hash => [num of devs]
-        self.authors_per_commit = {}
+        self.authors_per_files_waypoint = {}
 
     #Data providers for the metric
     def get_data_providers(self):
@@ -29,20 +29,20 @@ class Metric_NDEV(Metric_Interface):
 
     #Called once per commit, excludes current commit data (pre pre_calc_per_file call)
     def pre_calc_per_commit_exlusive(self, commit, is_commit_of_interest, calc_only_commits_of_interest):
+        #We are calculating this commit
         if is_commit_of_interest or not calc_only_commits_of_interest:
-            #Prep the data structure for waypoint
-            self.authors_per_commit[commit.hash] = []
+            self.authors_per_files_waypoint[commit.hash] = []
 
     #Called once per file in a commit
     def pre_calc_per_file(self, file, commit, is_commit_of_interest, calc_only_commits_of_interest):
         metric_data = self.data_provider.get_data()
-        #commit and we have data
+        #We are calculating this file and we have data
         if (is_commit_of_interest or not calc_only_commits_of_interest) and metric_data and file.new_path in metric_data.keys():
-            self.authors_per_commit[commit.hash].append(len(metric_data[file.new_path]))
+            self.authors_per_files_waypoint[commit.hash].append(len(metric_data[file.new_path]))
 
     #Called to fetch the metric value for current commit
     def get_metric(self, commit_hash):
-        metric_data = self.data_provider.get_data()
-        if metric_data and commit_hash in self.authors_per_commit.keys():
-            return sum(self.authors_per_commit[commit_hash])
+        if commit_hash in self.authors_per_files_waypoint.keys():
+            #Sum the number of devs that changed this commits files
+            return sum(self.authors_per_files_waypoint[commit_hash])
         return None

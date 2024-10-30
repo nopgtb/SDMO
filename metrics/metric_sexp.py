@@ -12,7 +12,8 @@ class Metric_SEXP(Metric_Interface):
         super().__init__()
         #package => author => number of commits
         self.package_commits_made = {}
-        self.package_commits_made_coi_waypoints = {}
+        #Hash => [{file:metric}]
+        self.commits_made_in_package_waypoint = {}
         self.packages_in_this_commit = []
 
     #Data providers for the metric
@@ -32,8 +33,9 @@ class Metric_SEXP(Metric_Interface):
     #Called once per commit, excludes current commit data (pre pre_calc_per_file call)
     def pre_calc_per_commit_exlusive(self, commit, is_commit_of_interest, calc_only_commits_of_interest):
         self.packages_in_this_commit = []
+        #We are calculating this commit
         if is_commit_of_interest or not calc_only_commits_of_interest:
-            self.package_commits_made_coi_waypoints[commit.hash] = []
+            self.commits_made_in_package_waypoint[commit.hash] = []
 
     #Called once per file in a commit
     def pre_calc_per_file(self, file, commit, is_commit_of_interest, calc_only_commits_of_interest):
@@ -41,15 +43,18 @@ class Metric_SEXP(Metric_Interface):
         packages = Data_Calculator_Util.extract_modified_packages(file)
         if packages:
             author = Data_Calculator_Util.get_commit_author(commit)
-            #Keep running count for commits made to the package
+            #Have we seen this package already in this commit?
             if not packages[0] in self.packages_in_this_commit:
+                #If not make note that the author commited on this package
                 self.packages_in_this_commit.append(packages[0])
                 self.package_commits_made.setdefault(packages[0], {}).setdefault(author, 0)
                 self.package_commits_made[packages[0]][author] = self.package_commits_made[packages[0]][author] + 1
-            #if is commit make waypoint data
+
+            #We are calculating this file
             if is_commit_of_interest or not calc_only_commits_of_interest:
-                self.package_commits_made_coi_waypoints[commit.hash].append({"file": file.new_path, "metric": self.package_commits_made[packages[0]][author]})
+                #Number of commits made to the package by the author
+                self.commits_made_in_package_waypoint[commit.hash].append({"file": file.new_path, "metric": self.package_commits_made[packages[0]][author]})
 
     #Called to fetch the metric value for current commit
     def get_metric(self, commit_hash):
-        return self.package_commits_made_coi_waypoints.get(commit_hash, None)
+        return self.commits_made_in_package_waypoint.get(commit_hash, None)

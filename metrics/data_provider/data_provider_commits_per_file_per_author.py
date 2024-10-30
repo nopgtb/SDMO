@@ -12,7 +12,7 @@ class Data_Provider_Commits_Per_File_Per_Author(Data_Provider_Interface):
         if file.change_type == ModificationType.RENAME:
             #Reference the previous path for continuity
             self.commits_per_author_per_file[file.new_path] = self.commits_per_author_per_file.setdefault(file.old_path, {})
-        #Add commit to the file calc
+        #Mark the commit for the author in the given file
         author = Data_Calculator_Util.get_commit_author(commit)
         file_authors = self.commits_per_author_per_file.setdefault(file.new_path, {})
         file_authors[author] = file_authors.get(author, 0) + 1

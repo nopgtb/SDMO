@@ -12,11 +12,11 @@ class Metric_OEXP(Metric_Interface):
     #Store the repo
     def __init__(self):
         super().__init__()
-        #Commit => File =>  author, exp
-        self.exprience_of_files_highest_commiter = {}
         self.data_provider_lpa = Data_Provider_Lines_Per_Author() 
         self.data_provider_commits = Data_Provider_Commits_Per_File_Per_Author()
         self.data_provider_tla_in_project = Data_Provider_Total_Lines_Authored_In_Project()
+        #Commit => {File , author, metric]
+        self.exprience_of_files_highest_commiter_waypoint = {}
 
     #Data providers for the metric
     def get_data_providers(self):
@@ -32,26 +32,30 @@ class Metric_OEXP(Metric_Interface):
     def get_collection_level():
         return "file"
 
-    #Called once per commit, includes current commit data (post pre_calc_per_file call)
-    def pre_calc_per_commit_inclusive(self, commit, is_commit_of_interest, calc_only_commits_of_interest):
+    #Called once per commit, excludes current commit data (pre pre_calc_per_file call)
+    def pre_calc_per_commit_exlusive(self, commit, is_commit_of_interest, calc_only_commits_of_interest):
+        #We are calculating this file
+        if is_commit_of_interest or not calc_only_commits_of_interest:
+            self.exprience_of_files_highest_commiter_waypoint[commit.hash] = []
+
+    #Called once per file in a commit
+    def pre_calc_per_file(self, file, commit, is_commit_of_interest, calc_only_commits_of_interest):
         commit_data = self.data_provider_commits.get_data()
         tla_in_project = self.data_provider_tla_in_project.get_data()
         lpa_data = self.data_provider_lpa.get_data()
-        #is refactorings commit
-        if (is_commit_of_interest or not calc_only_commits_of_interest) and commit_data and tla_in_project and lpa_data:
-            self.exprience_of_files_highest_commiter[commit.hash] = []
-            for file in Data_Calculator_Util.list_commit_files(commit):
-                #Ownership is defined by the number of commits made to the given file
-                hc_author, hc_commit_count  = Data_Calculator_Util.get_highest_commiter_of_file(commit_data, file)
-                #We got hc author and they have data
-                if hc_author and hc_author in lpa_data.keys():
-                    lines_contributed_by_hc = lpa_data.get(hc_author)
-                    self.exprience_of_files_highest_commiter[commit.hash].append({
-                        "file": file,
-                        "author": hc_author,
-                        "metric": (lines_contributed_by_hc / tla_in_project) * 100
-                    })
+        #We are calculating this file and have data
+        if is_commit_of_interest or not calc_only_commits_of_interest and commit_data and tla_in_project and lpa_data:
+            #Get files owner, ownership is defined by the number of commits made to the given file
+            hc_author, hc_commit_count  = Data_Calculator_Util.get_highest_commiter_of_file(commit_data, file.new_path)
+            #We have owner and they have data
+            if hc_author and hc_author in lpa_data.keys():
+                #Calculate authors experience = lines authored by the them / total lines in project
+                self.exprience_of_files_highest_commiter_waypoint[commit.hash].append({
+                    "file": file.new_path,
+                    "author": hc_author,
+                    "metric": (lpa_data.get(hc_author) / tla_in_project) * 100
+                })
 
     #Called to fetch the metric value for current commit
     def get_metric(self, commit_hash):
-        return self.exprience_of_files_highest_commiter.get(commit_hash, None)
+        return self.exprience_of_files_highest_commiter_waypoint.get(commit_hash, None)

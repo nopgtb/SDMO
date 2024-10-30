@@ -14,11 +14,11 @@ class Metric_EXP(Metric_Interface):
     #Store the repo
     def __init__(self):
         super().__init__()
+        self.data_provider_tla_in_project = Data_Provider_Total_Lines_Authored_In_Project()
         #Commit => geometric_mean of exp
-        self.geometric_mean_of_exp = {}
+        self.geometric_mean_of_exp_waypoint = {}
         #author => lines contributed
         self.lines_per_author = {}
-        self.data_provider_tla_in_project = Data_Provider_Total_Lines_Authored_In_Project()
 
     #Data providers for the metric
     def get_data_providers(self):
@@ -36,14 +36,17 @@ class Metric_EXP(Metric_Interface):
 
     #Called once per file in a commit
     def pre_calc_per_file(self, file, commit, is_commit_of_interest, calc_only_commits_of_interest):
+        #Keep track of the lines authored by the author
         author = Data_Calculator_Util.get_commit_author(commit)
         self.lines_per_author[author] = self.lines_per_author.get(author, 0) + file.added_lines + file.deleted_lines
 
     #Called once per commit, includes current commit data (post pre_calc_per_file call)
     def pre_calc_per_commit_inclusive(self, commit, is_commit_of_interest, calc_only_commits_of_interest):
         tla_in_project = self.data_provider_tla_in_project.get_data()
-        if tla_in_project:
-            #Calculate percentages of contribution per author
+        #We are calculating this commit and we have data
+        if is_commit_of_interest or not calc_only_commits_of_interest and tla_in_project:
+            #Geometric mean ([(1 + E1) *... (1+En)] ^1/n) - 1 
+            #Calculate percentages of contribution per author across the project
             author_contrib_in_percentage = {}
             for author in self.lines_per_author:
                 author_contrib_in_percentage[author] = (self.lines_per_author[author] / tla_in_project)
@@ -54,9 +57,9 @@ class Metric_EXP(Metric_Interface):
             #Calculate exponent 1/num of authors
             exponent = 1/len(author_contrib_in_percentage)
             #Raise the inner product to the exponent and subtract 1
-            self.geometric_mean_of_exp[commit.hash] = (inner_product ** exponent) - 1
+            self.geometric_mean_of_exp_waypoint[commit.hash] = (inner_product ** exponent) - 1
 
     #Called to fetch the metric value for current commit
     def get_metric(self, commit_hash):
         #EXP waypoint set for current_commit
-        return self.geometric_mean_of_exp.get(commit_hash, None)
+        return self.geometric_mean_of_exp_waypoint.get(commit_hash, None)

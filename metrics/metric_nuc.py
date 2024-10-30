@@ -9,10 +9,11 @@ class Metric_NUC(Metric_Interface):
     #Store the repo
     def __init__(self):
         super().__init__()
-        #Commit hash => number of times fiels in the commiit have been modified
-        self.commit_files_modified_count = {}
-        self.modification_times_in_commit = []
         self.data_provider = Data_Provider_Commits_Per_File_Per_Author()
+        #Commit hash => number of times files in the commit have been modified
+        self.commit_files_modified_count_waypoint = {}
+        #[Times commits files have been modified]
+        self.files_mod_count = []
 
     #Data providers for the metric
     def get_data_providers(self):
@@ -30,21 +31,23 @@ class Metric_NUC(Metric_Interface):
 
     #Called once per commit, excludes current commit data (pre pre_calc_per_file call)
     def pre_calc_per_commit_exlusive(self, commit, is_commit_of_interest, calc_only_commits_of_interest):
-        self.modification_times_in_commit = []
+        self.files_mod_count = []
 
     #Called once per file in a commit
     def pre_calc_per_file(self, file, commit, is_commit_of_interest, calc_only_commits_of_interest):
         metric_data = self.data_provider.get_data()
-        #commit and we have data
+        #We are calculating this file and we have data
         if (is_commit_of_interest or not calc_only_commits_of_interest) and metric_data and file.new_path in metric_data.keys():
             #Count the times file has been modified
-            self.modification_times_in_commit.append(sum([metric_data[file.new_path][author] for author in metric_data[file.new_path]]))
+            self.files_mod_count.append(sum([metric_data[file.new_path][author] for author in metric_data[file.new_path]]))
 
     #Called once per commit, includes current commit data (post pre_calc_per_file call)
     def pre_calc_per_commit_inclusive(self, commit, is_commit_of_interest, calc_only_commits_of_interest):
-        if is_commit_of_interest or not calc_only_commits_of_interest:            
-            self.commit_files_modified_count[commit.hash] = sum(self.modification_times_in_commit)
+        #we are calculating this commit
+        if is_commit_of_interest or not calc_only_commits_of_interest:
+            #Sum number of times commits files have been modified       
+            self.commit_files_modified_count_waypoint[commit.hash] = sum(self.files_mod_count)
 
     #Called to fetch the metric value for current commit
     def get_metric(self, commit_hash):
-        return self.commit_files_modified_count.get(commit_hash, None)
+        return self.commit_files_modified_count_waypoint.get(commit_hash, None)

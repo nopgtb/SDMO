@@ -12,7 +12,7 @@ class Data_Provider_Lines_Per_File_Per_Author_From_Last_COI(Data_Provider_Interf
         if file.change_type == ModificationType.RENAME:
             #Reference the previous path for continuity
             self.contributors_per_file[file.new_path] = self.contributors_per_file.setdefault(file.old_path, {})
-        #Per path have dict of authors with number of lines contributed
+        #Per file we have dict of authors that each has number indicating their LOC contribution
         author = Data_Calculator_Util.get_commit_author(commit)
         contribs_path_for_path = self.contributors_per_file.setdefault(file.new_path, {})
         contribs_path_for_path[author] = contribs_path_for_path.get(author, 0) + file.added_lines + file.deleted_lines

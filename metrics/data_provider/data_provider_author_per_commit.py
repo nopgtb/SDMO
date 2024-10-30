@@ -11,7 +11,7 @@ class Data_Provider_Author_Per_Commit(Data_Provider_Interface):
 
     #Initialize and Reset the data
     def reset_data(self):
-        #commit => author
+        #hash => author
         self.commit_author = {}
 
     #Returns the data of the data provider

@@ -1,10 +1,8 @@
 from metrics.metric_interface import Metric_Interface
 from metrics.data_calculator_util import Data_Calculator_Util
-
 #What is considered a subsystem?
 #Packages
 #Modules? - javalang targets java 8, so support for modules is questionable. so propably not
-
 
 #NS
 #Number of modified subsystems.
@@ -38,7 +36,7 @@ class Metric_NS(Metric_Interface):
 
     #Called once per file in a commit
     def pre_calc_per_file(self, file, commit, is_commit_of_interest, calc_only_commits_of_interest):
-        #Get Modified packages and append them to commit data
+        #We are calculating this file
         if is_commit_of_interest or not calc_only_commits_of_interest:
             self.packages_modified_per_commit[file.new_path] = Data_Calculator_Util.extract_modified_packages(file)
 
@@ -46,19 +44,21 @@ class Metric_NS(Metric_Interface):
     def count_packages_modified(self, pr_commit):
         packages_present = []
         if self.packages_modified_per_commit:
-            #for commit => for file => for [packages] if package
+            #Number of packages modified in the commit
             packages_present = [pn for file in self.packages_modified_per_commit for pn in self.packages_modified_per_commit[file] if pn]
         #remove dubplicate entries
         return len(list(set(packages_present)))
     
     #Count subsystems present in file
     def count_subsystems_modified(self, pr_commit):
-        #For now just count the packages modified 
+        #For now just count the packages modified
+        #Its hard to say what was meant by "subsystems"
         subsystems_present = self.count_packages_modified(pr_commit)
         return subsystems_present
 
     #Called once per commit, includes current commit data (post pre_calc_per_file call)
     def pre_calc_per_commit_inclusive(self, commit, is_commit_of_interest, calc_only_commits_of_interest):
+        #We are calculating this commit
         if is_commit_of_interest or not calc_only_commits_of_interest:
             self.subsystems_modified_per_commit[commit.hash] = self.count_subsystems_modified(commit)
 

@@ -9,10 +9,10 @@ class Metric_MINOR(Metric_Interface):
     #Store the repo
     def __init__(self):
         super().__init__()
+        self.data_provider = Data_Provider_Lines_Per_File_Per_Author()
         #commit => [num of contribs who give less than 5%]
         self.minor_authors_in_file_waypoint = {}
         self.minor_author_treshold = 0.05
-        self.data_provider = Data_Provider_Lines_Per_File_Per_Author()
 
     #Data providers for the metric
     def get_data_providers(self):
@@ -30,23 +30,29 @@ class Metric_MINOR(Metric_Interface):
 
     #Called once per commit, excludes current commit data (pre pre_calc_per_file call)
     def pre_calc_per_commit_exlusive(self, commit, is_commit_of_interest, calc_only_commits_of_interest):
+        #Are we calculating this commit?
         if is_commit_of_interest or not calc_only_commits_of_interest:
             self.minor_authors_in_file_waypoint[commit.hash] = []
 
     #Called once per file in a commit
     def pre_calc_per_file(self, file, commit, is_commit_of_interest, calc_only_commits_of_interest):
         metric_data = self.data_provider.get_data()
-        #Make waypoint for commit files
+        #We are calculating this file and we have data for it
         if (is_commit_of_interest or not calc_only_commits_of_interest) and metric_data and file.new_path in metric_data.keys():
-            #Sum of total lines contributed to the file between all the developers
-            total_lines = sum([metric_data[file.new_path][author] for author in metric_data[file.new_path]])
+            #Get number of LOC contributed to this file by all authors
+            total_lines = Data_Calculator_Util.get_total_lines_contributed_by_author(metric_data, file, None)
             if total_lines > 0:
                 #Count the number of developers that have contributed less or equal amount of lines
                 #than the threshold set in self.minor_author_treshold
-                self.minor_authors_in_file_waypoint[commit.hash].append(len([author for author in metric_data[file.new_path] if (metric_data[file.new_path][author] / total_lines) >= self.minor_author_treshold]))
+                self.minor_authors_in_file_waypoint[commit.hash].append(
+                    len(
+                        [author for author in metric_data[file.new_path] if (metric_data[file.new_path][author] / total_lines) >= self.minor_author_treshold]
+                    )
+                )
 
     #Called to fetch the metric value for current commit
     def get_metric(self, commit_hash):
         if commit_hash in self.minor_authors_in_file_waypoint.keys():
+            #Sum the number of minor authors per commit
             return sum(self.minor_authors_in_file_waypoint.get(commit_hash))
         return None
