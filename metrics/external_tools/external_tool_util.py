@@ -1,10 +1,17 @@
 import os
 import csv
 import json
+import datetime
 from pathlib import Path
 
 #Static class for external tool utility
 class External_Tool_Util:
+
+
+    #Gets a formated timestamp
+    @staticmethod
+    def get_timestamp():
+        return datetime.datetime.now().strftime('%H:%M:%S')
 
     #Writes json to file
     @staticmethod

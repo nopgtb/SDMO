@@ -90,6 +90,8 @@ def write_commit_files(path, commit):
 def worker():
     while True:
         commit = tool_queue.get()
+        if commit == None:
+            break
         #Write files for analysis by the tool
         commit_temp_folder = get_tool_temp_folder() + "\\" + commit["hash"]
         write_commit_files(commit_temp_folder, commit)
@@ -113,9 +115,10 @@ if __name__ == "__main__":
         #Tool job queue
         tool_queue = queue.Queue()
         tool_data_per_commit = {service:{} for service in tool_instructions["service_needs"]}
+        worker_threads = []
         #Start worker threads
         for i in range(tool_instructions["max_workers"]):
-            threading.Thread(target=worker, daemon=True).start()
+            worker_threads.append(threading.Thread(target=worker, daemon=True).start())
         #Run trough all the commits of the git and push them to the worker threads
         for commit in Repository(tool_instructions["repository"], only_in_branch=tool_instructions["branch"]).traverse_commits():
             #Git can be weird
@@ -126,6 +129,13 @@ if __name__ == "__main__":
             except:
                 continue
         tool_queue.join()
+        
+        for _ in range(len(worker_threads)):
+            tool_queue.put(None)
+    
         #Write results to output
         for service in tool_instructions["service_needs"]:
             external_tool_mappings[service]["output"](tool_data_per_commit[service])
+
+        for thread in tool_queue:
+            thread.join()

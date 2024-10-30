@@ -14,17 +14,18 @@ from sklearn.metrics.pairwise import cosine_similarity
 
 #Create co occurance matrix from the words. How many times did each word occur with its pair in the context?
 def create_co_occurance_matrix(m_words, word_map, unique_word_count):
-    #Each array (variable/comment) in the words is treated as its own context window
+    #Each function is considered its own context window
     #unique_word_count * unique_word_count zero matrix
     co_occurance = np.zeros((unique_word_count, unique_word_count), dtype=np.int32)
-    #Loop trough each context
-    for context in m_words:
+
+    #No word can co occur with itself
+    if len(m_words) > 1:
         #Loop trough each word in context
         word_counts = {}
         #Findout how many times did each word occur
-        for word in context:
+        for word in m_words:
             word_counts[word] = word_counts.get(word, 0) + 1
-        
+
         word_1 = 0
         word_2 = 0
         context_unique_words = list(word_counts.keys())
@@ -73,13 +74,13 @@ def get_method_variable_names(m):
     #Parameters
     for var in m.parameters:
         if isinstance(var, javalang.tree.FormalParameter) or isinstance(var, javalang.tree.TypeParameter):
-            names.append(split_name(var.name))
+            names.extend(split_name(var.name))
     #Local vars
     if m.body:
         for var in m.body:
             if isinstance(var, javalang.tree.LocalVariableDeclaration):
                 for dc in var.declarators:
-                    names.append(split_name(dc.name))
+                    names.extend(split_name(dc.name))
     return names
 
 #Removes every non word element from the comment
@@ -91,7 +92,7 @@ def get_method_comments(m, code):
     words = []
     #Javadoc
     if m.documentation:
-        words.append(split_comment(m.documentation))
+        words.extend(split_comment(m.documentation))
     #Local comments
     comments = re.findall(r'(//.*?$)|(/\*.*?\*/)', code, re.DOTALL|re.MULTILINE)
     for comment in comments:
@@ -103,20 +104,20 @@ def get_method_comments(m, code):
         else:
             mutlipart_context.extend(split_comment(comment))
         #Append the context to the words list
-        words.append(mutlipart_context)
+        words.extend(mutlipart_context)
     return words
 
 #Retrieves words present in the method
 def get_words_with_context(m, code):
     words = []
     #Function name
-    words.append(split_name(m.name))
+    #words.append(split_name(m.name))
     #Get variable name words
     words.extend(get_method_variable_names(m))
     #Get words from comments associated with the method
     words.extend(get_method_comments(m, code))
     #lower case all words and return them
-    return [[w.lower() for w in c] for c in words]
+    return [w.lower() for w in words]
 
 #Retrives methods present in the class and their raw source code
 def get_class_methods(c, code):
@@ -128,24 +129,13 @@ def get_class_methods(c, code):
 
     #Retrieve the raw code for the method
     code_split = code.splitlines()
-    brackets = 0
+    #Estimate the raw code of the function using the starting point and last know statement of the function
     for m in methods:
-        #approximate the raw code block for the method
-        method_code = code_split[m["m"].position.line-1:]
-        entered_func = False
-        #Using brackets get the accurate raw code block
-        for i,l in enumerate(method_code):
-            brackets = brackets + l.count("{")
-            #Have we entered the function?
-            entered_func = entered_func or brackets > 0
-            if entered_func:
-                brackets = brackets - l.count("}")
-                #Have we exited the function?
-                if brackets == 0:
-                    method_code = method_code[:i+1]
-                    break
-        #Assign the raw code block to the method
-        m["code"] = "\n".join(method_code)
+        if m["m"].body:
+            #Raw code is from declaration to line following last stament
+            m["code"] = "\n".join(code_split[m["m"].position.line: m["m"].body[-1].position.line+1])
+        else:
+            m["code"] = ""
     return methods
 
 #Combines the LSI values of the methods into single matrix
@@ -160,39 +150,44 @@ def combine_methods(methods):
 def acsm(c, code):
     #Get methods present in class
     methods = get_class_methods(c, code)
-    #Get words from the methods
-    all_words = []
-    for m in methods:
-        #Get the words and their context from the method
-        m["words"] = get_words_with_context(m["m"], m["code"])
-        #Append the method words to the all words 
-        all_words.extend(m["words"])
-    #Pre calculate LSI value for each method in class
-    cms_values = []
-    min_dimensions = 3
-    #We need atleast 3 words total
-    if len(all_words) >= min_dimensions:
-        #Calculate word matrix dimensions and a word => mat map
-        single_dim_uniq_words = list(set([w for c in all_words for w in c]))
-        word_map = {w:i for i,w in enumerate(single_dim_uniq_words)}
-        word_count = len(single_dim_uniq_words)
-        truncsvd = TruncatedSVD(n_components=min_dimensions)
+    #Cant compare one method
+    if len(methods) > 1:
+        #Get words from the methods
+        all_words = []
         for m in methods:
-            m["lsi_value"] = lsi(m["words"], word_map, word_count, truncsvd)
-        #Combine LSIs into single matrix
-        lsi_matrix = combine_methods(methods)
-        if isinstance(lsi_matrix, np.ndarray):
-            #Calculate similarity between each row pair in LSI matrix == CMS
-            lsi_sim_matrix = cosine_similarity(lsi_matrix)
-            #We only care about the values in the non diagonal upper triangle, sum them
-            #The upper and lower matrix are mirrored, avg wont be affected if we only calculate one of them
-            #Diag contains identity similarity == 1
-            np.fill_diagonal(lsi_sim_matrix, 0)
-            upper_sum = np.triu(lsi_sim_matrix).sum()
-            #Calculate size of non diag upper mat_size - (n*(n+1))/2, where n is mat size in dim 1
-            values_in_upper = (lsi_matrix.shape[0] * lsi_matrix.shape[0]) - ((lsi_matrix.shape[0] * (lsi_matrix.shape[0] + 1)) / 2)
-            #Return the average similarity
-            return upper_sum / values_in_upper
+            #Get the words and their context from the method
+            m["words"] = get_words_with_context(m["m"], m["code"])
+            #Append the method words to the all words 
+            all_words.extend(m["words"])
+
+        min_dimensions = 3
+        #We need atleast 3 words total
+        if len(all_words) >= min_dimensions:
+            #Calculate word matrix dimensions and a word => mat map
+            single_dim_uniq_words = list(set(all_words))
+            word_map = {w:i for i,w in enumerate(single_dim_uniq_words)}
+            word_count = len(single_dim_uniq_words)
+            truncsvd = TruncatedSVD(n_components=min_dimensions)
+            for m in methods:
+                m["lsi_value"] = lsi(m["words"], word_map, word_count, truncsvd)
+            #Combine LSIs into single matrix
+            lsi_matrix = combine_methods(methods)
+            if isinstance(lsi_matrix, np.ndarray):
+                #Calculate size of non diag upper mat_size - (n*(n+1))/2, where n is mat size in dim 1
+                values_in_upper = (lsi_matrix.shape[0] * lsi_matrix.shape[0]) - ((lsi_matrix.shape[0] * (lsi_matrix.shape[0] + 1)) / 2)
+                if values_in_upper > 0:
+                    #Calculate similarity between each row pair in LSI matrix == CMS
+                    lsi_sim_matrix = cosine_similarity(lsi_matrix)
+                    #We only care about the values in the non diagonal upper triangle, sum them
+                    #The upper and lower matrix are mirrored, avg wont be affected if we only calculate one of them
+                    #Diag contains identity similarity == 1
+                    np.fill_diagonal(lsi_sim_matrix, 0)
+                    upper_sum = np.triu(lsi_sim_matrix).sum()
+                    #Return the average similarity
+                    return upper_sum / values_in_upper
+    elif len(methods) == 1:
+        #There is only 1 function, it is 100% similiar with itself
+        return 1
     return 0
 
 #Calculates the c3 value for the given class
