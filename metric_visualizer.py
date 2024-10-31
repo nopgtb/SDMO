@@ -64,19 +64,21 @@ if Util.file_exists(input_file):
             #Create folder for the git and add the data for processing
             if Util.make_directory(repo_graph_folder) and Util.make_directory(repo_html_folder):
                 metric_reports[repo_name] = Util.read_json(repository["metric_report"])
-
-        #Process read data
-        for metric in metrics_table:
-            for graph_type in metrics_table[metric]:
-                #Get data in format for the graph
-                fig_data = graph_type.get_data_frame(repo_name, metric_reports[repo_name], metric)
-                if isinstance(fig_data, pandas.DataFrame) and not fig_data.empty or not isinstance(fig_data, pandas.DataFrame) and fig_data:
-                    #If data graph and save
-                    fig = graph_type.graph(fig_data, metric)
-                    fig_name = graph_type.get_graph_type() + "_" + metric.get_metric_name()
-                    graph_type.save_fig(repo_graph_folder, repo_html_folder, fig_name, fig)
-                else:
-                    print("Could not graph: ", metric.get_metric_name())
+                #For each metric
+                for metric in metrics_table:
+                    #For each graph type
+                    for graph_type in metrics_table[metric]:
+                        #Get data in format for the graph
+                        fig_data = graph_type.get_data_frame(repo_name, metric_reports[repo_name], metric)
+                        if isinstance(fig_data, pandas.DataFrame) and not fig_data.empty or not isinstance(fig_data, pandas.DataFrame) and fig_data:
+                            #If data graph and save
+                            fig = graph_type.graph(fig_data, metric)
+                            fig_name = graph_type.get_graph_type() + "_" + metric.get_metric_name()
+                            graph_type.save_fig(repo_graph_folder, repo_html_folder, fig_name, fig)
+                        else:
+                            print("Could not graph: ", metric.get_metric_name())
+            else:
+                print("Could not create graph folder: ", repo_graph_folder, " or ", repo_html_folder)
 else:
     print("Did not find input file: ", input_file)
     
