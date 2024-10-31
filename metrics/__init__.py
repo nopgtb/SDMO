@@ -39,3 +39,4 @@ from .metric_nopf import Metric_NOPF
 from .metric_nosm import Metric_NOSM
 from .metric_nosi import Metric_NOSI
 from .metric_c3 import Metric_C3
+from .metric_hslcom import Metric_HSLCOM

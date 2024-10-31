@@ -4,7 +4,7 @@ from metrics.data_provider.data_provider_external_c3_hslcom import Data_Provider
 
 #RFC
 #Response For a Class: the number of methods in a class plus the number of remote methods that are called recursively. 
-class Metric_C3(Metric_Interface):
+class Metric_HSLCOM(Metric_Interface):
 
     #Store the repo
     def __init__(self):
@@ -18,7 +18,7 @@ class Metric_C3(Metric_Interface):
     #Returns name of the metric as str
     @staticmethod
     def get_metric_name():
-        return "C3"
+        return "HSLCOM"
     
     #Returns at what level was the metric collected at
     @staticmethod
@@ -30,5 +30,5 @@ class Metric_C3(Metric_Interface):
         metric_data = self.data_provider.get_data()
         #If we have data for commit
         if metric_data and commit_hash in metric_data.keys():
-            return [{"class":c["class"], "metric":c["metric_c3"]} for c in metric_data[commit_hash]]
+            return [{"class":c["class"], "metric":c["metric_hslcom"]} for c in metric_data[commit_hash]]
         return None

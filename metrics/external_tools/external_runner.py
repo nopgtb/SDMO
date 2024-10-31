@@ -7,11 +7,11 @@ from pydriller import Repository
 if __name__ == "__main__":
     #if run from service 
     from external_ck import CK
-    from external_c3 import C3
+    from external_c3_hslcom import C3_HSLCOM
     from external_tool_util import External_Tool_Util
 else:
     from .external_ck import CK
-    from .external_c3 import C3
+    from .external_c3_hslcom import C3_HSLCOM
     from .external_tool_util import External_Tool_Util
 
 #Tool mappings
@@ -23,12 +23,12 @@ external_tool_mappings = {
         "output": CK.output_tool_data,
         "output_path": CK.get_output_path
     },
-    C3.get_tool_id(): {
-        "collect": C3.collect_tool_data,
-        "analyze": C3.start_tool_proc,
-        "present": C3.tool_present,
-        "output": C3.output_tool_data,
-        "output_path": C3.get_output_path
+    C3_HSLCOM.get_tool_id(): {
+        "collect": C3_HSLCOM.collect_tool_data,
+        "analyze": C3_HSLCOM.start_tool_proc,
+        "present": C3_HSLCOM.tool_present,
+        "output": C3_HSLCOM.output_tool_data,
+        "output_path": C3_HSLCOM.get_output_path
     }
 }
 
