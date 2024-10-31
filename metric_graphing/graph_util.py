@@ -16,7 +16,7 @@ class Graph_Util:
         for hash in data:
             if not hash[metric_key] == None:
                 for file_metric in hash[metric_key]:
-                    if float(file_metric["metric"]) > 0:
+                    if file_metric["metric"] and float(file_metric["metric"]) > 0:
                         sub_data[file_metric[subkey]] = sub_data.get(file_metric[subkey],0) + 1
         #Make it unique
         candidates = [f for f in sub_data.keys() if sub_data[f] >= min_num_of_non_zero_values]
