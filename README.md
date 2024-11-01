@@ -13,16 +13,15 @@
 # Install
 Developed on python 3.12.3, install libaries using      
 ```pip install -r requirements.txt```
-
-# Usage
-Excepts a csv containing targeted github projects placed into the project folder named "source.csv".  
-First column should contain the projects .git link  
 ## External Tools
 Describes expected external tools   
 ### RefactoringMiner
 Excepts a build version of refactorminer to be found at ./RefactoringMiner/bin   
 ### ck
-Excepts a build version of ck to be found at ./metrics/external_tools/ck.jar      
+Excepts a build version of ck to be found at ./metrics/external_tools/ck.jar     
+# Usage
+Excepts a csv containing targeted github projects placed into the project folder named "source.csv".  
+First column should contain the projects .git link   
 ## Running
 You can run the project two ways
 ### Run all
