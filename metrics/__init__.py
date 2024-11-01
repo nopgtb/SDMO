@@ -40,3 +40,4 @@ from .metric_nosm import Metric_NOSM
 from .metric_nosi import Metric_NOSI
 from .metric_c3 import Metric_C3
 from .metric_hslcom import Metric_HSLCOM
+from .metric_comread import Metric_COMREAD

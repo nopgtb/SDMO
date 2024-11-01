@@ -44,7 +44,8 @@ metrics_table = [
     metrics.Metric_NOSM,
     metrics.Metric_NOSI,
     metrics.Metric_C3,
-    metrics.Metric_HSLCOM
+    metrics.Metric_HSLCOM,
+    metrics.Metric_COMREAD
 ]
 
 #Load up the available data from the part 1 files

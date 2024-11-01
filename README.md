@@ -14,11 +14,13 @@
 Developed on python 3.12.3, install libaries using      
 ```pip install -r requirements.txt```
 ## External Tools
-Describes expected external tools   
-### RefactoringMiner
+To fully run the tool the following external tools are required  
+### [RefactoringMiner](https://github.com/tsantalis/RefactoringMiner)
 Expects a build version of refactorminer to be found at ./RefactoringMiner/bin   
-### ck
+### [Ck](https://github.com/mauricioaniche/ck)
 Expects a build version of ck to be found at ./metrics/external_tools/ck.jar     
+### [Comread](https://dibt.unimol.it/report/readability/)
+Excepts version of [comread](https://doi.org/10.1002/smr.1958) to be found at ./metrics/external_tools/comread.jar.The readability tool can downloaded at its [online companion](https://dibt.unimol.it/report/readability/). Rename the jar to comread and place it into the path along with readability.classifier
 # Usage
 Expects a csv containing targeted github projects placed into the project folder named "source.csv".  
 First column should contain the projects .git link   
@@ -46,7 +48,7 @@ external_tools/* - Interfaces to external tools
 Contains rudimentary graphing tools for the metrics
 # Tools used calculating metrics
 Metrics from COMM to SEXP are implemented using pydriller. All the data needed is provided by pydriller. Metrics from CBO to NOSI are implemented using pydriller and CK. Pydriller provides data on the files and ck provides convenient way to calculate the metrics. Data for metric HsLCOM and C3 was retrieved using pydriller. Metric HsLCOM was implemented in python due to lack of platform independence of the existing tools. Metric C3 was implemented in python using numpy,scikit and javalang due to existing tools working on .class files. Compiling files to .class files would be wasteful since all the required data is in the source code itself already.
-Out of the list ComRead is missing due to lack of information on this metric.
+Data for metric ComRead is provided by pydriller and the metric itself is calculated using ComRead.
 # Metric output format
 The tool puts out a json file containing an array. in this array each commit is represented by an dictionary. This dictionary contains keys "commit_hash" and "metric_*" where star represents the shorthand for the metric (example metric_COMM). If the metric_* value is None, it means that the value could not be calculated. The metric data comes in four different shapes.   
 ### Commit level metric
@@ -68,7 +70,7 @@ Currently the only author level metric EXP behaves output wise similarily as the
 "metric_EXP":4.2
 ```
 ### Class level metric
-Class level metric contains an array of dictionaries. This dictionary has the keys class and metric. Key class contains the name of the class prefixed with the package path that it exists in. Key metric contains the value for the metric being calculated for this class. The value can be either integer, floating point, boolean or a value representing None. The value None means that the metric could not be calculated for the specific class.
+Class level metric contains an array of dictionaries. This dictionary has the keys class and metric. Key class contains the name of the class prefixed with the package path that it exists in. Some tools provide file name instead of class name. In these cases the file name is used as the class name. Key metric contains the value for the metric being calculated for this class. The value can be either integer, floating point, boolean or a value representing None. The value None means that the metric could not be calculated for the specific class.
 ```
 "metric_C3":[
     {"class":"excomm.secret.class", "metric":1}, 

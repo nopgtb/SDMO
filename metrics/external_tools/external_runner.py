@@ -7,10 +7,12 @@ from pydriller import Repository
 if __name__ == "__main__":
     #if run from service 
     from external_ck import CK
+    from external_comread import COMREAD
     from external_c3_hslcom import C3_HSLCOM
     from external_tool_util import External_Tool_Util
 else:
     from .external_ck import CK
+    from .external_comread import COMREAD
     from .external_c3_hslcom import C3_HSLCOM
     from .external_tool_util import External_Tool_Util
 
@@ -29,7 +31,14 @@ external_tool_mappings = {
         "present": C3_HSLCOM.tool_present,
         "output": C3_HSLCOM.output_tool_data,
         "output_path": C3_HSLCOM.get_output_path
-    }
+    },
+    COMREAD.get_tool_id(): {
+        "collect": COMREAD.collect_tool_data,
+        "analyze": COMREAD.start_tool_proc,
+        "present": COMREAD.tool_present,
+        "output": COMREAD.output_tool_data,
+        "output_path": COMREAD.get_output_path
+    },
 }
 
 #Reads a json file to communicate with the external tool scripts
