@@ -46,6 +46,7 @@ metrics_table = {
     metrics.Metric_NOSI: [HeatMap_Graph], #class level
     metrics.Metric_C3: [HeatMap_Graph], #class level
     metrics.Metric_HSLCOM: [HeatMap_Graph], #class level
+    metrics.Metric_COMREAD: [HeatMap_Graph], #class level
 }
 
 input_file = Util.relative_to_absolute("part_2_submission_index.json")
