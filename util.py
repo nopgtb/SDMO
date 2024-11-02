@@ -54,7 +54,10 @@ class Util:
     def read_json(path):
         data = {}
         with open(path, "r") as file:
-            data = json.load(file)
+            try:
+                data = json.load(file)
+            except json.decoder.JSONDecodeError:
+                pass
         return data
 
     #Writes json to file

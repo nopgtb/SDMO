@@ -60,8 +60,7 @@ def check_procc_for_error(p, repo):
     if p.returncode != 0:
         #mining might have crashed, make a note of it
         Util.write_json(Util.relative_to_absolute("mining_error.json"), {"offening_repo": repo["source_git"]})
-
-
+        print("Miner did not exit normally for repo ", repo["source_git"], " The produced report could be faulty!")
 
 #Change this to reflect your placement of the miner
 refactoring_miner_path = Util.relative_to_absolute("RefactoringMiner\\bin\\RefactoringMiner.bat")
