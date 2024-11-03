@@ -1,4 +1,5 @@
 import re
+import os
 import subprocess
 from pathlib import Path
 
@@ -17,19 +18,26 @@ class COMREAD(External_Tool_Interface):
     def get_tool_id():
         return "comread"
 
+    #Returns wheter the tool wants to go trough each commit or can patch collect
+    @staticmethod
+    def get_method():
+        return "patch"
+
     #Parses comread output file
     @staticmethod
     def parse_comread_output(txt):
         #Split lines and ignore header
         lines = txt.splitlines()[1:]
-        output = []
+        output = {}
         for line in lines:
             #Tool outputs a \t between the file and metric
             parts = line.split("\t")
             if parts and len(parts) == 2 and not parts[1] == "NaN":
                 try:
+                    file_path = Path(parts[0])
+                    commit_hash = file_path.parent.name
                     #Try to interp the metric as float
-                    output.append({"class":Path(parts[0]).name, "metric":float(parts[1])})
+                    output.setdefault(commit_hash, []).append({"class":file_path.name, "metric":float(parts[1])})
                 except:
                     pass
         return output
@@ -60,20 +68,24 @@ class COMREAD(External_Tool_Interface):
 
     #Starts external proc for analysing the given path
     @staticmethod
-    def start_tool_proc(path):
+    def start_tool_proc(path, file_paths = None):
         #Arguments for starting python with tool
-        args = [
-                "java",
-                "-jar",
-                COMREAD.get_tool_path(),
-                (path + "/*.java"),
-                "--outputFile="+ path+"/comread.txt",
-                "--classifier=" + COMREAD.get_classifier_path()
-        ] 
-        return subprocess.Popen(
-            args, 
-            stdin = subprocess.DEVNULL, stdout = subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True
-        )
+        if file_paths:
+            External_Tool_Util.write_array(path+"\\comread_input.txt" ,file_paths)
+            args = [
+                    "java",
+                    "-jar",
+                    COMREAD.get_tool_path(),
+                    #(path + "/*.java"),
+                    "--outputFile="+ path+"\\comread.txt",
+                    "--inputFile=" + path+"\\comread_input.txt",
+                    "--classifier=" + COMREAD.get_classifier_path()
+            ] 
+            return subprocess.Popen(
+                args, 
+                stdin = subprocess.DEVNULL, stdout = subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True
+            )
+        return None
 
     #Outputs the given data as output of the tool
     @staticmethod

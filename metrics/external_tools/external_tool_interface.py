@@ -6,6 +6,11 @@ class External_Tool_Interface:
     def get_tool_id():
         pass
 
+    #Returns wheter the tool wants to go trough each commit or can patch collect
+    @staticmethod
+    def get_method():
+        pass
+
     #Collect the output of the external tool
     @staticmethod
     def collect_tool_data(path):
@@ -23,7 +28,7 @@ class External_Tool_Interface:
 
     #Starts external proc for analysing the given path
     @staticmethod
-    def start_tool_proc(path):
+    def start_tool_proc(path, file_paths = None):
         pass
 
     #Outputs the given data as output of the tool

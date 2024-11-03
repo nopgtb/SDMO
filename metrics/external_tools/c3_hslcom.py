@@ -291,21 +291,18 @@ class Util:
 
     #Parses given java file paths
     @staticmethod
-    def parse_java_files(files):
-        parsed_java = []
-        for file in files:
-            try:
-                #Read the file and try to parse the java code
-                java = Path(file).read_text()
-                parsed_java.append(
-                    {
-                        "path": file,
-                        "code": java,
-                        "parse":  javalang.parse.parse(java)
-                    }
-                )
-            except:
-                pass
+    def parse_java_file(file):
+        parsed_java = {"path":"", "code":"", "parse":None}
+        try:
+            #Read the file and try to parse the java code
+            java = Path(file).read_text()
+            parsed_java = {
+                    "path": file,
+                    "code": java,
+                    "parse":  javalang.parse.parse(java)
+                }
+        except:
+            pass
         return parsed_java
 
     #Traverses the given parsed tree and returns present classes
@@ -369,24 +366,26 @@ args = parser.parse_args()
 target_path = args.target
 if Util.folder_exists(target_path):
     java_files = Util.get_java_files_in_path(target_path)
-    print(Util.get_timestamp(), ": parsing files")
-    parsed_java = Util.parse_java_files(java_files)
-    print(Util.get_timestamp(), ": parsed files")
+
     result_per_class = []
     #For each file
-    for unit in parsed_java:
-        #Get classes
-        print(Util.get_timestamp(), ": working on ", unit["path"])
-        unit_classes = Util.get_file_classes(unit["parse"])
-        for c in unit_classes:
-            #For each class calculate C3 metric
-            result_per_class.append(
-                {
-                    "class":c["class"], 
-                    "metric_c3":C3.c3(c["obj"], unit["code"]), 
-                    "metric_hslcom":HSLCOM.hslcom(c["obj"], unit["code"])
-                }
-            )
+    for file in java_files:
+        unit = Util.parse_java_file(file)
+        #We managed to parse this file
+        if unit["path"]:
+            #Get classes
+            print(Util.get_timestamp(), ": working on ", unit["path"])
+            unit_classes = Util.get_file_classes(unit["parse"])
+            for c in unit_classes:
+                #For each class calculate C3 metric
+                result_per_class.append(
+                    {
+                        "file":unit["path"],
+                        "class":c["class"], 
+                        "metric_c3":C3.c3(c["obj"], unit["code"]), 
+                        "metric_hslcom":HSLCOM.hslcom(c["obj"], unit["code"])
+                    }
+                )
 
     #Write the results back to the targeted path
     Util.write_json(target_path + "\\" + "c3_hslcom_class.json", result_per_class)

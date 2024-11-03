@@ -15,13 +15,25 @@ class C3_HSLCOM(External_Tool_Interface):
     @staticmethod
     def get_tool_id():
         return "c3_hslcom"
+    
+    #Returns wheter the tool wants to go trough each commit or can patch collect
+    @staticmethod
+    def get_method():
+        return "patch"
 
     #Collect the output of the external tool
     @staticmethod
     def collect_tool_data(path):
         file_path = path + "\\c3_hslcom_class.json"
         if External_Tool_Util.path_exists(file_path):
-            return External_Tool_Util.read_json(file_path)
+            #[{"file"..}]
+            tool_json = External_Tool_Util.read_json(file_path)
+            output = {}
+            for file in tool_json:
+                file_path = Path(file["file"])
+                commit_hash = file_path.parent.name
+                output.setdefault(commit_hash, []).append({"class":file["class"], "metric_c3": file["metric_c3"], "metric_hslcom":file["metric_hslcom"]})
+            return output
         return []
 
     #Returns the tools execution path
@@ -36,7 +48,7 @@ class C3_HSLCOM(External_Tool_Interface):
 
     #Starts external proc for analysing the given path
     @staticmethod
-    def start_tool_proc(path):
+    def start_tool_proc(path, file_paths = None):
         #Arguments for starting python with tool
         args = ["python", C3_HSLCOM.get_tool_path(), path] 
         return subprocess.Popen(

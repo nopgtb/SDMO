@@ -13,6 +13,18 @@ class External_Tool_Util:
     def get_timestamp():
         return datetime.datetime.now().strftime('%H:%M:%S')
 
+    #Writes array to file
+    @staticmethod
+    def write_array(path, data):
+        #Comread doesnt bother stripping its input strings
+        #Causing it to not find files on windows so we have to specify 
+        #newline to make it work
+        with open(path, "w+", encoding="UTF-8", newline="\n") as file:
+            for line in data:
+                output_line = line+"\n"#os.linesep
+                #output_line = output_line.encode()
+                file.write(output_line)
+
     #Writes json to file
     @staticmethod
     def write_json(path, data):
