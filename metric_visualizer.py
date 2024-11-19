@@ -6,16 +6,16 @@ from metric_graphing.line_graph import Line_Graph
 
 metrics_table = {
     metrics.Metric_COMM: [Line_Graph], #commit level
-    metrics.Metric_NCOMM: [HeatMap_Graph], #file level
+    metrics.Metric_NCOMM: [Line_Graph], #file level
     metrics.Metric_ADEV: [Line_Graph], #commit level
     metrics.Metric_DDEV: [Line_Graph], #commit level
     metrics.Metric_ADD: [Line_Graph], #commit level
     metrics.Metric_DEL: [Line_Graph], #commit level
     metrics.Metric_OWN: [Line_Graph], #commit level
     metrics.Metric_MINOR: [Line_Graph], #commit level
-    metrics.Metric_NADEV: [HeatMap_Graph], #file level
-    metrics.Metric_NDDEV: [HeatMap_Graph], #file level
-    metrics.Metric_OEXP: [HeatMap_Graph], #file level
+    metrics.Metric_NADEV: [Line_Graph], #file level
+    metrics.Metric_NDDEV: [Line_Graph], #file level
+    metrics.Metric_OEXP: [Line_Graph], #file level
     metrics.Metric_EXP: [Line_Graph], #author level
     metrics.Metric_ND: [Line_Graph], #commit level
     metrics.Metric_NF: [Line_Graph], #commit level
@@ -29,24 +29,24 @@ metrics_table = {
     metrics.Metric_AGE: [Line_Graph], #commit level
     metrics.Metric_NUC: [Line_Graph], #commit level
     metrics.Metric_CEXP: [Line_Graph], #commit level
-    metrics.Metric_REXP: [HeatMap_Graph], #file level
-    metrics.Metric_SEXP: [HeatMap_Graph], #file level
-    metrics.Metric_CBO: [HeatMap_Graph], #class level
-    metrics.Metric_WMC: [HeatMap_Graph], #class level
-    metrics.Metric_RFC: [HeatMap_Graph], #class level
-    metrics.Metric_ELOC: [HeatMap_Graph], #class level
-    metrics.Metric_NOM: [HeatMap_Graph], #class level
-    metrics.Metric_NOPM: [HeatMap_Graph], #class level
-    metrics.Metric_DIT: [HeatMap_Graph], #class level
-    metrics.Metric_NOC: [HeatMap_Graph], #class level
-    metrics.Metric_NOF: [HeatMap_Graph], #class level
-    metrics.Metric_NOSF: [HeatMap_Graph], #class level
-    metrics.Metric_NOPF: [HeatMap_Graph], #class level
-    metrics.Metric_NOSM: [HeatMap_Graph], #class level
-    metrics.Metric_NOSI: [HeatMap_Graph], #class level
-    metrics.Metric_C3: [HeatMap_Graph], #class level
-    metrics.Metric_HSLCOM: [HeatMap_Graph], #class level
-    metrics.Metric_COMREAD: [HeatMap_Graph], #class level
+    metrics.Metric_REXP: [Line_Graph], #file level
+    metrics.Metric_SEXP: [Line_Graph], #file level
+    metrics.Metric_CBO: [Line_Graph], #class level
+    metrics.Metric_WMC: [Line_Graph], #class level
+    metrics.Metric_RFC: [Line_Graph], #class level
+    metrics.Metric_ELOC: [Line_Graph], #class level
+    metrics.Metric_NOM: [Line_Graph], #class level
+    metrics.Metric_NOPM: [Line_Graph], #class level
+    metrics.Metric_DIT: [Line_Graph], #class level
+    metrics.Metric_NOC: [Line_Graph], #class level
+    metrics.Metric_NOF: [Line_Graph], #class level
+    metrics.Metric_NOSF: [Line_Graph], #class level
+    metrics.Metric_NOPF: [Line_Graph], #class level
+    metrics.Metric_NOSM: [Line_Graph], #class level
+    metrics.Metric_NOSI: [Line_Graph], #class level
+    metrics.Metric_C3: [Line_Graph], #class level
+    metrics.Metric_HSLCOM: [Line_Graph], #class level
+    metrics.Metric_COMREAD: [Line_Graph], #class level
 }
 
 input_file = Util.relative_to_absolute("part_2_submission_index.json")
@@ -78,7 +78,7 @@ if Util.file_exists(input_file):
                                 fig_name = graph_type.get_graph_type() + "_" + metric.get_metric_name()
                                 graph_type.save_fig(repo_graph_folder, repo_html_folder, fig_name, fig)
                             else:
-                                print("Could not graph: ", metric.get_metric_name())
+                                print("Could not graph: ", metric.get_metric_name(), " for ", repo_name)
                 else:
                     print("Could not output graphs for ", repository["source_git"])
             else:
