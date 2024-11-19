@@ -9,3 +9,5 @@ echo Calculating metrics
 python calculate_metrics.py
 echo Graphing metrics
 python metric_visualizer.py
+echo Metric Sd analysis
+python metric_sd.py

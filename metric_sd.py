@@ -12,7 +12,7 @@ def get_metric_sd_data(metric_val, metric):
             return sum(sub_values) / len(sub_values)
     return 0
 
-def metric_sd(data, metric):
+def metrics_sd(data, metric):
     sd_data = []
     metric_key = "metric_" + metric.get_metric_name()
     for hash_data in data:
@@ -74,7 +74,7 @@ if Util.file_exists(input_file):
         repositories = Util.read_json(input_file)
         #Load metric datas
         metric_reports = {}
-        metric_sd = {}
+        metrics_sd_data = {}
         for repository in repositories:
             repo_name = Util.get_repo_name(repository["source_git"])
             #Create folder for the git and add the data for processing
@@ -84,14 +84,14 @@ if Util.file_exists(input_file):
 
                 for metric in metrics_table:
                     #Get data in format for the graph
-                    metric_sd.setdefault(metric.get_metric_name(),[]).append(metric_sd(metric_reports[repo_name], metric))
+                    metrics_sd_data.setdefault(metric.get_metric_name(),[]).append(metrics_sd(metric_reports[repo_name], metric))
             else:
                 print("Could not output graphs for ", repository["source_git"])
         
-        metric_sd = {key:sum(metric_sd[key])/len(metric_sd[key]) for key in metric_sd}
-        metric_sd = dict(sorted(metric_sd.items(), key=lambda item: item[1]))
+        metrics_sd_data = {key:sum(metrics_sd_data[key])/len(metrics_sd_data[key]) for key in metrics_sd_data}
+        metrics_sd_data = dict(sorted(metrics_sd_data.items(), key=lambda item: item[1]))
         print("top lowest sds: ")
-        for key in metric_sd:
-            print(key, ": ", metric_sd[key])
+        for key in metrics_sd_data:
+            print(key, ": ", metrics_sd_data[key])
 else:
     print("Did not find input file: ", input_file)
